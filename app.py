@@ -54,8 +54,7 @@ def store_csv_in_database():
                 sunset_time TEXT,
                 daylight_duration TEXT,
                 precipitation_hours REAL,
-                max_wind_speed REAL,
-                max_uv_index REAL
+                max_wind_speed REAL
             )
         """)
 
@@ -90,8 +89,7 @@ def store_csv_in_database():
                         row.get('Sunset Time', None), 
                         row.get('Daylight Duration', None), 
                         row.get('Precipitation Hours', None), 
-                        row.get('Max Wind Speed (m/s)', None), 
-                        row.get('Max UV Index', None))
+                        row.get('Max Wind Speed (m/s)', None))
             except FileNotFoundError:
                 print(f"data/{city}_weather.csv not found. Skipping...")
             except Exception as e:
