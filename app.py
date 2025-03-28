@@ -46,6 +46,7 @@ def store_csv_in_database():
         db.execute("""
             CREATE TABLE IF NOT EXISTS weather_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                city TEXT NOT NULL,
                 date TEXT NOT NULL,
                 max_temperature REAL,
                 min_temperature REAL,
@@ -74,11 +75,12 @@ def store_csv_in_database():
                 for _, row in df.iterrows():
                     db.execute("""
                         INSERT INTO weather_data (
-                            date, max_temperature, min_temperature, total_rainfall, 
+                            city, date, max_temperature, min_temperature, total_rainfall, 
                             sunrise_time, sunset_time, daylight_duration, 
                             precipitation_hours, max_wind_speed
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, row['Date'].strftime('%Y-%m-%d'), 
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, city,  # Add the city name here
+                        row['Date'].strftime('%Y-%m-%d'), 
                         row.get('Max Temperature (°C)', None), 
                         row.get('Min Temperature (°C)', None), 
                         row.get('Total Rainfall (mm)', None), 
