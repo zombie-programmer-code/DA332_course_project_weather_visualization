@@ -25,14 +25,22 @@ from datetime import timedelta
 #from tensorflow.python.keras.models import load_model
 #import tensorflow as tf
 app = Flask(__name__)
+dfs = {}
+
 @app.before_request
 def initialize():
-    
+    city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", 
+    "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
+    "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
+    "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad",
+    "Shimla", "Chandigarh", "Dehradun"]
     try:
-        df = pd.read_csv(f'data/DA332_project_data/weather_csv/Guwahati_weather.csv')
-        df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
+        for city in city_names:
+            df = pd.read_csv(f'data/{city}_weather.csv')
+            df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
+            dfs[city] = df
     except FileNotFoundError:
-        raise FileNotFoundError(f"Guwahati_weather.csv not found in {DATA_PATH}. Please provide the file.")
+        raise FileNotFoundError(f"data/{city}_weather.csv' not found. Please provide the file.")
 
 # Define the route for the homepage
 @app.route('/')
