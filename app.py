@@ -70,9 +70,6 @@ def store_csv_in_database():
                 df = pd.read_csv(f'data/{city}_weather.csv')
                 df['Date'] = pd.to_datetime(df['Date'])  # Ensure the 'Date' column is in datetime format
 
-                # Replace NaN values with None
-                df = df.fillna(value=None)
-
                 # Insert data into the weather_data table
                 for _, row in df.iterrows():
                     db.execute("""
