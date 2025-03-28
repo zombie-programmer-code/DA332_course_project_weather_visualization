@@ -76,8 +76,8 @@ def store_csv_in_database():
                         INSERT INTO weather_data (
                             date, max_temperature, min_temperature, total_rainfall, 
                             sunrise_time, sunset_time, daylight_duration, 
-                            precipitation_hours, max_wind_speed, max_uv_index
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            precipitation_hours, max_wind_speed
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, row['Date'].strftime('%Y-%m-%d'), 
                         row.get('Max Temperature (°C)', None), 
                         row.get('Min Temperature (°C)', None), 
