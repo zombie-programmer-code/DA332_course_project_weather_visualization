@@ -27,3 +27,8 @@ packaging
 six
 gunicorn
 tqdm
+altair
+regex
+plotly
+vega_datasets
+pyLDAvis
