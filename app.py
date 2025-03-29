@@ -63,9 +63,13 @@ def store_csv_in_database():
                       "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
                       "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
                       "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad",
-                      "Shimla", "Chandigarh", "Dehradun"]
+                      "Shimla", "Chandigarh", "Dehradun", "Ranchi", "Raipur", 
+                        "Guwahati", "Itanagar", "Kohima", "Aizawl", "Agartala", 
+                        "Imphal", "Gangtok", "Bhubaneswar", "Thiruvananthapuram",
+                        "Panaji", "Shillong"]
 
         for city in city_names:
+            print(f"Processing data for {city}...")
             try:
                 # Read the CSV file for the city
                 df = pd.read_csv(f'data/{city}_weather.csv')
