@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Live Weather Data
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h1 class="mb-4">Live Weather Data</h1>
+    <div>
+        {{ plot_html|safe }}
+    </div>
+    <a href="/live_weather" class="btn btn-secondary mt-4">Back</a>
+</div>
+{% endblock %}
