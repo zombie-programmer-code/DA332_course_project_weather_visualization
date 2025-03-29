@@ -4,6 +4,8 @@ from datetime import datetime, time, timedelta
 from cs50 import SQL
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+import plotly.express as px
+
 import numpy as np
 import joblib
 from datetime import datetime, timedelta
@@ -26,7 +28,14 @@ from datetime import timedelta
 #import tensorflow as tf
 app = Flask(__name__)
 db = SQL("sqlite:///weather.db")
-
+city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", 
+                      "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
+                      "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
+                      "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad",
+                      "Shimla", "Chandigarh", "Dehradun", "Ranchi", "Raipur", 
+                        "Guwahati", "Itanagar", "Kohima", "Aizawl", "Agartala", 
+                        "Imphal", "Gangtok", "Bhubaneswar", "Thiruvananthapuram",
+                        "Panaji", "Shillong"]
 @app.before_request
 def store_csv_in_database():
     if not hasattr(app, 'db_initialized'):
@@ -58,15 +67,6 @@ def store_csv_in_database():
                 max_wind_speed REAL
             )
         """)
-
-        city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", 
-                      "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
-                      "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
-                      "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad",
-                      "Shimla", "Chandigarh", "Dehradun", "Ranchi", "Raipur", 
-                        "Guwahati", "Itanagar", "Kohima", "Aizawl", "Agartala", 
-                        "Imphal", "Gangtok", "Bhubaneswar", "Thiruvananthapuram",
-                        "Panaji", "Shillong"]
 
         for city in city_names:
             print(f"Processing data for {city}...")
@@ -103,10 +103,56 @@ def store_csv_in_database():
 def index():
     return render_template('home.html')
 
-@app.route('/historical_trends')
+@app.route('/historical_trends', methods=['GET', 'POST'])
+@app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
-    # Logic for historical trends
-    return "Historical Trends Page (to be implemented)"
+    if request.method == 'POST':
+        # Get form data
+        cities = request.form.getlist('cities')  # Get selected cities as a list
+        from_year = int(request.form['from_year'])
+        to_year = int(request.form['to_year'])
+        variables = request.form.getlist('variables')  # Get selected variables as a list
+        plot_type = request.form['plot_type']  # Get selected plot type
+
+        # Handle grouped "temperature" option
+        if "temperature" in variables:
+            variables.remove("temperature")
+            variables.extend(["max_temperature", "min_temperature"])
+
+        # Query the database for all selected cities
+        query = f"""
+            SELECT city, date, {', '.join(variables)}
+            FROM weather_data
+            WHERE city IN ({', '.join(['?'] * len(cities))})
+            AND strftime('%Y', date) BETWEEN ? AND ?
+        """
+        rows = db.execute(query, *cities, str(from_year), str(to_year))
+
+        # Convert to DataFrame
+        df = pd.DataFrame(rows)
+
+        if df.empty:
+            return render_template('historical_trends.html', city_names=city_names, error="No data found for the selected cities and year range.")
+
+        # Generate the selected plot type
+        if plot_type == 'line':
+            fig = px.line(
+                df,
+                x='date',
+                y=variables,
+                color='city',
+                labels={'value': 'Weather Metrics', 'variable': 'Metric'},
+                title=f"Weather Trends for {', '.join(cities)} ({from_year} - {to_year})"
+            )
+
+        # Convert the plot to HTML
+        plot_html = fig.to_html(full_html=False)
+
+        # Render the plot in the HTML template
+        return render_template('historical_trends_plot.html', plot_html=plot_html)
+
+    # Render the form if the request method is GET
+    return render_template('historical_trends.html', city_names=city_names)
 
 @app.route('/forecasts')
 def forecasts():

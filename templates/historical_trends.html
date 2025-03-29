@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Historical Weather Trends
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h1 class="mb-4">View Historical Weather Trends</h1>
+    <p>Select one or more cities, a year range, and the variables to view historical weather trends as a time series or density plot.</p>
+
+    <!-- Form for selecting cities, year range, variables, and plot type -->
+    <form action="/historical_trends" method="POST">
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="cities" class="form-label">Select Cities</label>
+                <select class="form-select" id="cities" name="cities" multiple required>
+                    {% for city in city_names %}
+                    <option value="{{ city }}">{{ city }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) key to select multiple cities.</small>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="from_year" class="form-label">From Year</label>
+                <input type="number" class="form-control" id="from_year" name="from_year" placeholder="Enter starting year (e.g., 2015)" required>
+            </div>
+            <div class="col-md-6">
+                <label for="to_year" class="form-label">To Year</label>
+                <input type="number" class="form-control" id="to_year" name="to_year" placeholder="Enter ending year (e.g., 2020)" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="variables" class="form-label">Select Variables</label>
+                <select class="form-select" id="variables" name="variables" multiple required>
+                    <option value="temperature">Max and Min Temperature (°C)</option>
+                    <option value="total_rainfall">Total Rainfall (mm)</option>
+                    <option value="precipitation_hours">Precipitation Hours</option>
+                    <option value="max_wind_speed">Max Wind Speed (m/s)</option>
+                </select>
+                <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) key to select multiple variables.</small>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="plot_type" class="form-label">Select Plot Type</label>
+                <select class="form-select" id="plot_type" name="plot_type" required>
+                    <option value="line">Line Plot</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">View Trends</button>
+    </form>
+</div>
+{% endblock %}
