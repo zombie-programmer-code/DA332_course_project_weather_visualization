@@ -7,14 +7,16 @@ Historical Weather Trends
 {% block main %}
 <div class="container mt-4">
     <h1 class="mb-4">View Historical Weather Trends</h1>
-    <p>Select one or more cities, a year range, and the variables to view historical weather trends as a time series or density plot.</p>
+    <p>Select cities, year ranges, and variables separately for the line plot and box plot.</p>
 
-    <!-- Form for selecting cities, year range, variables, and plot type -->
+    <!-- Form for selecting cities, year range, and variables -->
     <form action="/historical_trends" method="POST">
+        <!-- Line Plot Section -->
+        <h3>Line Plot</h3>
         <div class="row mb-3">
             <div class="col-md-12">
-                <label for="cities" class="form-label">Select Cities</label>
-                <select class="form-select" id="cities" name="cities" multiple required>
+                <label for="line_cities" class="form-label">Select Cities for Line Plot</label>
+                <select class="form-select" id="line_cities" name="line_cities" multiple required>
                     {% for city in city_names %}
                     <option value="{{ city }}">{{ city }}</option>
                     {% endfor %}
@@ -24,18 +26,18 @@ Historical Weather Trends
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <label for="from_year" class="form-label">From Year</label>
-                <input type="number" class="form-control" id="from_year" name="from_year" placeholder="Enter starting year (e.g., 2015)" required>
+                <label for="line_from_year" class="form-label">From Year</label>
+                <input type="number" class="form-control" id="line_from_year" name="line_from_year" placeholder="Enter starting year (e.g., 2015)" required>
             </div>
             <div class="col-md-6">
-                <label for="to_year" class="form-label">To Year</label>
-                <input type="number" class="form-control" id="to_year" name="to_year" placeholder="Enter ending year (e.g., 2020)" required>
+                <label for="line_to_year" class="form-label">To Year</label>
+                <input type="number" class="form-control" id="line_to_year" name="line_to_year" placeholder="Enter ending year (e.g., 2020)" required>
             </div>
         </div>
         <div class="row mb-3">
             <div class="col-md-12">
-                <label for="variables" class="form-label">Select Variables</label>
-                <select class="form-select" id="variables" name="variables" multiple required>
+                <label for="line_variables" class="form-label">Select Variables for Line Plot</label>
+                <select class="form-select" id="line_variables" name="line_variables" multiple required>
                     <option value="temperature">Max and Min Temperature (°C)</option>
                     <option value="total_rainfall">Total Rainfall (mm)</option>
                     <option value="precipitation_hours">Precipitation Hours</option>
@@ -44,14 +46,33 @@ Historical Weather Trends
                 <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) key to select multiple variables.</small>
             </div>
         </div>
+
+        <!-- Box Plot Section -->
+        <h3>Box Plot</h3>
         <div class="row mb-3">
             <div class="col-md-12">
-                <label for="plot_type" class="form-label">Select Plot Type</label>
-                <select class="form-select" id="plot_type" name="plot_type" required>
-                    <option value="line">Line Plot</option>
+                <label for="box_cities" class="form-label">Select Cities for Box Plot</label>
+                <select class="form-select" id="box_cities" name="box_cities" multiple required>
+                    {% for city in city_names %}
+                    <option value="{{ city }}">{{ city }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) key to select multiple cities.</small>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="box_variable" class="form-label">Select Variable for Box Plot</label>
+                <select class="form-select" id="box_variable" name="box_variable" required>
+                    <option value="max_temperature">Max Temperature (°C)</option>
+                    <option value="min_temperature">Min Temperature (°C)</option>
+                    <option value="total_rainfall">Total Rainfall (mm)</option>
+                    <option value="precipitation_hours">Precipitation Hours</option>
+                    <option value="max_wind_speed">Max Wind Speed (m/s)</option>
                 </select>
             </div>
         </div>
+
         <button type="submit" class="btn btn-primary">View Trends</button>
     </form>
 </div>

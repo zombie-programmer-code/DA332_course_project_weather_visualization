@@ -198,49 +198,74 @@ def index():
 @app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
     if request.method == 'POST':
-        # Get form data
-        cities = request.form.getlist('cities')  # Get selected cities as a list
-        from_year = int(request.form['from_year'])
-        to_year = int(request.form['to_year'])
-        variables = request.form.getlist('variables')  # Get selected variables as a list
-        plot_type = request.form['plot_type']  # Get selected plot type
+        # Line plot inputs
+        line_cities = request.form.getlist('line_cities')
+        line_from_year = int(request.form['line_from_year'])
+        line_to_year = int(request.form['line_to_year'])
+        line_variables = request.form.getlist('line_variables')
 
-        # Handle grouped "temperature" option
-        if "temperature" in variables:
-            variables.remove("temperature")
-            variables.extend(["max_temperature", "min_temperature"])
+        # Box plot inputs
+        box_cities = request.form.getlist('box_cities')
+        box_variable = request.form['box_variable']
 
-        # Query the database for all selected cities
-        query = f"""
-            SELECT city, date, {', '.join(variables)}
+        # Handle grouped "temperature" option for line plot
+        if "temperature" in line_variables:
+            line_variables.remove("temperature")
+            line_variables.extend(["max_temperature", "min_temperature"])
+
+        # Query the database for line plot
+        line_query = f"""
+            SELECT city, date, {', '.join(line_variables)}
             FROM weather_data
-            WHERE city IN ({', '.join(['?'] * len(cities))})
+            WHERE city IN ({', '.join(['?'] * len(line_cities))})
             AND strftime('%Y', date) BETWEEN ? AND ?
         """
-        rows = db.execute(query, *cities, str(from_year), str(to_year))
+        line_rows = db.execute(line_query, *line_cities, str(line_from_year), str(line_to_year))
+        line_df = pd.DataFrame(line_rows)
 
-        # Convert to DataFrame
-        df = pd.DataFrame(rows)
+        # Query the database for box plot
+        box_query = f"""
+            SELECT city, date, {box_variable}
+            FROM weather_data
+            WHERE city IN ({', '.join(['?'] * len(box_cities))})
+        """
+        box_rows = db.execute(box_query, *box_cities)
+        box_df = pd.DataFrame(box_rows)
 
-        if df.empty:
+        # Check for empty data
+        if line_df.empty and box_df.empty:
             return render_template('historical_trends.html', city_names=city_names, error="No data found for the selected cities and year range.")
 
-        # Generate the selected plot type
-        if plot_type == 'line':
-            fig = px.line(
-                df,
-                x='date',
-                y=variables,
-                color='city',
-                labels={'value': 'Weather Metrics', 'variable': 'Metric'},
-                title=f"Weather Trends for {', '.join(cities)} ({from_year} - {to_year})"
-            )
+        # Generate the line plot
+        line_fig = px.line(
+            line_df,
+            x='date',
+            y=line_variables,
+            color='city',
+            labels={'value': 'Weather Metrics', 'variable': 'Metric'},
+            title=f"Weather Trends (Line Plot) for {', '.join(line_cities)} ({line_from_year} - {line_to_year})"
+        )
 
-        # Convert the plot to HTML
-        plot_html = fig.to_html(full_html=False)
+        # Generate the box plot
+        box_fig = px.box(
+            box_df,
+            x='city',
+            y=box_variable,
+            color='city',
+            labels={'value': 'Weather Metrics', 'variable': 'Metric'},
+            title=f"Box Plot for {box_variable} in {', '.join(box_cities)}"
+        )
 
-        # Render the plot in the HTML template
-        return render_template('historical_trends_plot.html', plot_html=plot_html)
+        # Convert the plots to HTML
+        line_plot_html = line_fig.to_html(full_html=False)
+        box_plot_html = box_fig.to_html(full_html=False)
+
+        # Render the plots in the HTML template
+        return render_template(
+            'historical_trends_plot.html',
+            line_plot_html=line_plot_html,
+            box_plot_html=box_plot_html
+        )
 
     # Render the form if the request method is GET
     return render_template('historical_trends.html', city_names=city_names)
