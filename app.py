@@ -36,6 +36,8 @@ city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad",
                         "Guwahati", "Itanagar", "Kohima", "Aizawl", "Agartala", 
                         "Imphal", "Gangtok", "Bhubaneswar", "Thiruvananthapuram",
                         "Panaji", "Shillong"]
+
+api_key = '126aff7cea9b454ca9c72738253103'
 @app.before_request
 def store_csv_in_database():
     if not hasattr(app, 'db_initialized'):
@@ -97,6 +99,79 @@ def store_csv_in_database():
                 print(f"data/{city}_weather.csv not found. Skipping...")
             except Exception as e:
                 print(f"Error processing {city}: {e}")
+
+api_key_weather = '126aff7cea9b454ca9c72738253103'
+
+def get_historical_hourly_weather(api_key, latitude, longitude, num_hours):
+    """
+    Fetches historical hourly weather data for a given location and number of hours in the past.
+    Implements retry logic if the API rate limit is exceeded.
+
+    Parameters:
+    - api_key (str): Your WeatherAPI.com API key.
+    - latitude (float): Latitude of the location.
+    - longitude (float): Longitude of the location.
+    - num_hours (int): Number of hours in the past to retrieve data for.
+
+    Returns:
+    - DataFrame: A pandas DataFrame containing the historical weather data.
+    """
+    if num_hours > 720:  # WeatherAPI.com allows fetching data up to 30 days (720 hours) in the past
+        raise ValueError("WeatherAPI.com's History API allows fetching data for up to 30 days (720 hours) in the past.")
+
+    end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    start_time = end_time - timedelta(hours=num_hours)
+
+    base_url = "http://api.weatherapi.com/v1/history.json"
+    all_data = []
+
+    current_time = start_time
+    while current_time <= end_time:
+        date_str = current_time.strftime('%Y-%m-%d')
+        params = {
+            "key": api_key,
+            "q": f"{latitude},{longitude}",
+            "dt": date_str,
+            "hour": current_time.hour
+        }
+
+        while True:
+            try:
+                response = requests.get(base_url, params=params)
+                if response.status_code == 429:
+                    print("Rate limit exceeded. Waiting 60 seconds before retrying...")
+                    time.sleep(60)
+                    continue
+
+                response.raise_for_status()
+                data = response.json()
+
+                for hour_data in data.get("forecast", {}).get("forecastday", [])[0].get("hour", []):
+                    all_data.append({
+                        "Datetime": datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M'),
+                        "Temperature (°C)": hour_data["temp_c"],
+                        "Feels Like (°C)": hour_data["feelslike_c"],
+                        "Precipitation (mm)": hour_data["precip_mm"],
+                        "Wind Speed (kph)": hour_data["wind_kph"],
+                        "Wind Direction": hour_data["wind_dir"],
+                        "Cloud Cover (%)": hour_data["cloud"],
+                        "Humidity (%)": hour_data["humidity"],
+                        "Pressure (mb)": hour_data["pressure_mb"]
+                    })
+
+                break
+
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}. Retrying in 60 seconds...")
+                time.sleep(60)
+
+        current_time += timedelta(hours=1)
+
+    df = pd.DataFrame(all_data)
+    df = df[df["Datetime"] <= end_time]
+    df = df.tail(num_hours).reset_index(drop=True)
+
+    return df
 
 API_KEY = "67c490b3a3c78893272577xmvd2c31f"
 def get_lat_lon(city):
