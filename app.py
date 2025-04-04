@@ -24,8 +24,8 @@ import joblib
 import numpy as np
 import pandas as pd
 from datetime import timedelta
-#from tensorflow.python.keras.models import load_model
-#import tensorflow as tf
+from tensorflow.python.keras.models import load_model
+import tensorflow as tf
 app = Flask(__name__)
 db = SQL("sqlite:///weather.db")
 db1 = SQL("sqlite:///live_weather.db")
