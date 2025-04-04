@@ -1,101 +1,86 @@
-,city,latitude,longitude,country,population
-0,Tokyo,35.6897,139.6922,Japan,37732000.0
-1,Jakarta,-6.175,106.8275,Indonesia,33756000.0
-2,Delhi,28.61,77.23,India,32226000.0
-3,Guangzhou,23.13,113.26,China,26940000.0
-4,Mumbai,19.0761,72.8775,India,24973000.0
-5,Manila,14.5958,120.9772,Philippines,24922000.0
-6,Shanghai,31.2286,121.4747,China,24073000.0
-7,Sao Paulo,-23.55,-46.6333,Brazil,23086000.0
-8,Seoul,37.56,126.99,"Korea, South",23016000.0
-9,Mexico City,19.4333,-99.1333,Mexico,21804000.0
-10,Cairo,30.0444,31.2358,Egypt,20296000.0
-11,New York,40.6943,-73.9249,United States,18908608.0
-12,Dhaka,23.7639,90.3889,Bangladesh,18627000.0
-13,Beijing,39.9067,116.3975,China,18522000.0
-14,Kolkata,22.5675,88.37,India,18502000.0
-15,Bangkok,13.7525,100.4942,Thailand,18007000.0
-16,Shenzhen,22.5415,114.0596,China,17619000.0
-17,Moscow,55.7558,37.6172,Russia,17332000.0
-18,Buenos Aires,-34.6033,-58.3817,Argentina,16710000.0
-19,Lagos,6.455,3.3841,Nigeria,16637000.0
-20,Istanbul,41.0136,28.955,Turkey,16079000.0
-21,Karachi,24.86,67.01,Pakistan,15738000.0
-22,Bangalore,12.9789,77.5917,India,15386000.0
-23,Ho Chi Minh City,10.7756,106.7019,Vietnam,15136000.0
-24,Osaka,34.6939,135.5022,Japan,15126000.0
-25,Chengdu,30.66,104.0633,China,14645000.0
-26,Tehran,35.6892,51.3889,Iran,14148000.0
-27,Kinshasa,-4.3219,15.3119,Congo (Kinshasa),12836000.0
-28,Rio de Janeiro,-22.9111,-43.2056,Brazil,12592000.0
-29,Chennai,13.0825,80.275,India,12395000.0
-30,Xi'an,34.2611,108.9422,China,12328000.0
-31,Lahore,31.5497,74.3436,Pakistan,12306000.0
-32,Chongqing,29.5637,106.5504,China,12135000.0
-33,Los Angeles,34.1141,-118.4068,United States,11922389.0
-34,Baoding,38.874,115.464,China,11544036.0
-35,London,51.5072,-0.1275,United Kingdom,11262000.0
-36,Paris,48.8567,2.3522,France,11060000.0
-37,Linyi,35.1038,118.3564,China,11018365.0
-38,Dongguan,23.021,113.752,China,10646000.0
-39,Hyderabad,17.3617,78.4747,India,10494000.0
-40,Tianjin,39.1336,117.2054,China,10368000.0
-41,Lima,-12.06,-77.0375,Peru,10320000.0
-42,Wuhan,30.5934,114.3046,China,10251000.0
-43,Nanyang,32.9987,112.5292,China,9713112.0
-44,Hangzhou,30.267,120.153,China,9523000.0
-45,Foshan,23.0214,113.1216,China,9498863.0
-46,Nagoya,35.1833,136.9,Japan,9197000.0
-47,Tongshan,34.204,117.284,China,9083790.0
-48,Luanda,-8.8383,13.2344,Angola,9051000.0
-49,Zhoukou,33.625,114.6418,China,9026015.0
-50,Ganzhou,25.831,114.933,China,8970014.0
-51,Kuala Lumpur,3.1478,101.6953,Malaysia,8911000.0
-52,Heze,35.2343,115.4796,China,8795939.0
-53,Quanzhou,24.8744,118.6757,China,8782285.0
-54,Johannesburg,-26.2044,28.0456,South Africa,8500000.0
-55,Chicago,41.8375,-87.6866,United States,8497759.0
-56,Nanjing,32.0608,118.7789,China,8422000.0
-57,Jining,35.4151,116.5871,China,8357897.0
-58,Hanoi,21.0,105.85,Vietnam,8246600.0
-59,Pune,18.5203,73.8567,India,8231000.0
-60,Fuyang,32.89,115.814,China,8200264.0
-61,Ahmedabad,23.0225,72.5714,India,8009000.0
-62,Bogota,4.7111,-74.0722,Colombia,7968095.0
-63,Shenyang,41.8025,123.4281,China,7964000.0
-64,Dar es Salaam,-6.8161,39.2803,Tanzania,7962000.0
-65,Khartoum,15.6,32.5,Sudan,7869000.0
-66,Shangqiu,34.415,115.656,China,7816831.0
-67,Hong Kong,22.3,114.2,Hong Kong,7450000.0
-68,Cangzhou,38.3047,116.8387,China,7300783.0
-69,Riyadh,24.6333,46.7167,Saudi Arabia,7237000.0
-70,Santiago,-33.4372,-70.6506,Chile,7171000.0
-71,Xingtai,37.0717,114.5048,China,7111106.0
-72,Zhumadian,33.014,114.022,China,7008427.0
-73,Chattogram,22.335,91.8325,Bangladesh,7000000.0
-74,Surabaya,-7.2458,112.7378,Indonesia,6998000.0
-75,Zhanjiang,21.2701,110.3575,China,6981236.0
-76,Bijie,27.284,105.292,China,6899636.0
-77,Yancheng,33.3482,120.1626,China,6709629.0
-78,Hengyang,26.894,112.572,China,6645243.0
-79,Zunyi,27.722,107.031,China,6606675.0
-80,Shaoyang,27.2395,111.4679,China,6563520.0
-81,Surat,21.1702,72.8311,India,6538000.0
-82,Shangrao,28.4551,117.9431,China,6435300.0
-83,Xinyang,32.149,114.091,China,6234401.0
-84,Madrid,40.4169,-3.7033,Spain,6211000.0
-85,Baghdad,33.3153,44.3661,Iraq,6183000.0
-86,Maoming,21.6627,110.9255,China,6174050.0
-87,Jieyang,23.551,116.3727,China,6089400.0
-88,Miami,25.784,-80.2101,United States,6080145.0
-89,Singapore,1.3,103.8,Singapore,5983000.0
-90,Houston,29.786,-95.3885,United States,5970127.0
-91,Liaocheng,36.4559,115.9852,China,5952128.0
-92,Huanggang,30.4537,114.8724,China,5882719.0
-93,Dalian,38.9,121.6,China,5871474.0
-94,Dallas,32.7935,-96.7667,United States,5830932.0
-95,Qingdao,36.0669,120.3827,China,5818255.0
-96,Yulin,22.654,110.181,China,5796766.0
-97,Douala,4.05,9.7,Cameroon,5768400.0
-98,Qujing,25.491,103.796,China,5765775.0
-99,Nangandao,35.3036,113.9268,China,5708191.0
+,city,latitude,longitude,country,population,continent
+0,Cairo,30.0444,31.2358,Egypt,20296000.0,Africa
+1,Lagos,6.455,3.3841,Nigeria,16637000.0,Africa
+2,Kinshasa,-4.3219,15.3119,Congo (Kinshasa),12836000.0,Africa
+3,Luanda,-8.8383,13.2344,Angola,9051000.0,Africa
+4,Johannesburg,-26.2044,28.0456,South Africa,8500000.0,Africa
+5,Dar es Salaam,-6.8161,39.2803,Tanzania,7962000.0,Africa
+6,Khartoum,15.6,32.5,Sudan,7869000.0,Africa
+7,Douala,4.05,9.7,Cameroon,5768400.0,Africa
+8,Giza,29.987,31.2118,Egypt,5598402.0,Africa
+9,Nairobi,-1.2864,36.8172,Kenya,5545000.0,Africa
+10,Abidjan,5.3167,-4.0333,Côte d’Ivoire,4980000.0,Africa
+11,Alexandria,31.1975,29.8925,Egypt,4870000.0,Africa
+12,Cape Town,-33.9253,18.4239,South Africa,4770313.0,Africa
+13,Bamako,12.6392,-8.0028,Mali,4227569.0,Africa
+14,Abuja,9.0667,7.4833,Nigeria,3770000.0,Africa
+15,Tokyo,35.6897,139.6922,Japan,37732000.0,Asia
+16,Jakarta,-6.175,106.8275,Indonesia,33756000.0,Asia
+17,Delhi,28.61,77.23,India,32226000.0,Asia
+18,Guangzhou,23.13,113.26,China,26940000.0,Asia
+19,Mumbai,19.0761,72.8775,India,24973000.0,Asia
+20,Manila,14.5958,120.9772,Philippines,24922000.0,Asia
+21,Shanghai,31.2286,121.4747,China,24073000.0,Asia
+22,Seoul,37.56,126.99,"Korea, South",23016000.0,Asia
+23,Dhaka,23.7639,90.3889,Bangladesh,18627000.0,Asia
+24,Beijing,39.9067,116.3975,China,18522000.0,Asia
+25,Kolkata,22.5675,88.37,India,18502000.0,Asia
+26,Bangkok,13.7525,100.4942,Thailand,18007000.0,Asia
+27,Shenzhen,22.5415,114.0596,China,17619000.0,Asia
+28,Istanbul,41.0136,28.955,Turkey,16079000.0,Asia
+29,Karachi,24.86,67.01,Pakistan,15738000.0,Asia
+30,Bangalore,12.9789,77.5917,India,15386000.0,Asia
+31,Ho Chi Minh City,10.7756,106.7019,Vietnam,15136000.0,Asia
+32,Osaka,34.6939,135.5022,Japan,15126000.0,Asia
+33,Chengdu,30.66,104.0633,China,14645000.0,Asia
+34,Tehran,35.6892,51.3889,Iran,14148000.0,Asia
+35,Moscow,55.7558,37.6172,Russia,17332000.0,Europe
+36,London,51.5072,-0.1275,United Kingdom,11262000.0,Europe
+37,Paris,48.8567,2.3522,France,11060000.0,Europe
+38,Madrid,40.4169,-3.7033,Spain,6211000.0,Europe
+39,Saint Petersburg,59.9375,30.3086,Russia,5384342.0,Europe
+40,Berlin,52.52,13.405,Germany,4890363.0,Europe
+41,Barcelona,41.3828,2.1769,Spain,4800000.0,Europe
+42,Athens,37.9842,23.7281,Greece,3059764.0,Europe
+43,Budapest,47.4925,19.0514,Hungary,2997958.0,Europe
+44,Kyiv,50.45,30.5233,Ukraine,2952301.0,Europe
+45,Birmingham,52.48,-1.9025,United Kingdom,2919600.0,Europe
+46,Stuttgart,48.7775,9.18,Germany,2787724.0,Europe
+47,Rome,41.8933,12.4828,Italy,2748109.0,Europe
+48,Munich,48.1375,11.575,Germany,2606021.0,Europe
+49,Hamburg,53.55,10.0,Germany,2484800.0,Europe
+50,Mexico City,19.4333,-99.1333,Mexico,21804000.0,North America
+51,New York,40.6943,-73.9249,United States,18908608.0,North America
+52,Los Angeles,34.1141,-118.4068,United States,11922389.0,North America
+53,Chicago,41.8375,-87.6866,United States,8497759.0,North America
+54,Miami,25.784,-80.2101,United States,6080145.0,North America
+55,Houston,29.786,-95.3885,United States,5970127.0,North America
+56,Dallas,32.7935,-96.7667,United States,5830932.0,North America
+57,Philadelphia,40.0077,-75.1339,United States,5683533.0,North America
+58,Toronto,43.7417,-79.3733,Canada,5647656.0,North America
+59,Guadalajara,20.6767,-103.3475,Mexico,5525000.0,North America
+60,Monterrey,25.6667,-100.3,Mexico,5341171.0,North America
+61,Atlanta,33.7628,-84.422,United States,5180179.0,North America
+62,Washington,38.9047,-77.0163,United States,5116378.0,North America
+63,Boston,42.3188,-71.0852,United States,4328315.0,North America
+64,Phoenix,33.5722,-112.0892,United States,4064275.0,North America
+65,Melbourne,-37.8142,144.9631,Australia,5031195.0,Oceania
+66,Sydney,-33.8678,151.21,Australia,4840600.0,Oceania
+67,Brisbane,-27.4678,153.0281,Australia,2360241.0,Oceania
+68,Perth,-31.9559,115.8606,Australia,2141834.0,Oceania
+69,Auckland,-36.8406,174.74,New Zealand,1346091.0,Oceania
+70,Sao Paulo,-23.55,-46.6333,Brazil,23086000.0,South America
+71,Buenos Aires,-34.6033,-58.3817,Argentina,16710000.0,South America
+72,Rio de Janeiro,-22.9111,-43.2056,Brazil,12592000.0,South America
+73,Lima,-12.06,-77.0375,Peru,10320000.0,South America
+74,Bogota,4.7111,-74.0722,Colombia,7968095.0,South America
+75,Santiago,-33.4372,-70.6506,Chile,7171000.0,South America
+76,Belo Horizonte,-19.9167,-43.9333,Brazil,5328000.0,South America
+77,Fortaleza,-3.7275,-38.5275,Brazil,4167996.0,South America
+78,Santa Cruz de la Sierra,-17.7892,-63.1975,Bolivia,3151676.0,South America
+79,La Paz,-16.4958,-68.1333,Bolivia,2867504.0,South America
+80,Brasilia,-15.7939,-47.8828,Brazil,2817068.0,South America
+81,Guayaquil,-2.19,-79.8875,Ecuador,2650288.0,South America
+82,Medellin,6.2308,-75.5906,Colombia,2529403.0,South America
+83,Cali,3.4206,-76.5222,Colombia,2471474.0,South America
+84,Salvador,-12.9747,-38.4767,Brazil,2418005.0,South America
