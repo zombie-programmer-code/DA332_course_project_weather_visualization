@@ -553,11 +553,12 @@ def live_weather_map():
     )
     fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=2, mapbox_center={'lat': 20, 'lon': 0})
     fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
-
+    
+    current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
     # Convert the map to HTML
     map_html = fig.to_html(full_html=False)
 
-    return render_template('live_weather_map.html', map_html=map_html)
+    return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
 
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
