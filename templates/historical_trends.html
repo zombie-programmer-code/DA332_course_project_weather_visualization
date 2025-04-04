@@ -40,13 +40,25 @@ Historical Weather Trends
         <div class="row mb-3">
             <div class="col-md-12">
                 <label for="line_variables" class="form-label" style="font-weight: bold; color: #34495e;">Select Variables for Line Plot</label>
-                <select class="form-select" id="line_variables" name="line_variables" multiple required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
-                    <option value="temperature">Max and Min Temperature (°C)</option>
-                    <option value="total_rainfall">Total Rainfall (mm)</option>
-                    <option value="precipitation_hours">Precipitation Hours</option>
-                    <option value="max_wind_speed">Max Wind Speed (m/s)</option>
-                </select>
-                <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) key to select multiple variables.</small>
+                <div id="line_variables" style="border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="temperature" name="line_variables" value="temperature">
+                        <label class="form-check-label" for="temperature">Max and Min Temperature (°C)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="total_rainfall" name="line_variables" value="total_rainfall">
+                        <label class="form-check-label" for="total_rainfall">Total Rainfall (mm)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="precipitation_hours" name="line_variables" value="precipitation_hours">
+                        <label class="form-check-label" for="precipitation_hours">Precipitation Hours</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="max_wind_speed" name="line_variables" value="max_wind_speed">
+                        <label class="form-check-label" for="max_wind_speed">Max Wind Speed (m/s)</label>
+                    </div>
+                </div>
+                <small class="form-text text-muted">Select one or more variables for the line plot.</small>
             </div>
         </div>
 
