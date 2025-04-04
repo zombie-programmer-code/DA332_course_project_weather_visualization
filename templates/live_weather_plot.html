@@ -6,10 +6,13 @@ Live Weather Data
 
 {% block main %}
 <div class="container mt-4">
-    <h1 class="mb-4">Live Weather Data</h1>
+    <h1 class="mb-2">Live Weather Data</h1>
+    <h4 class="text-muted mb-4">City: {{ city }}</h4>
+    <h4 class="text-muted mb-4">Weather data for the past Hours: {{ hours }}</h4>
     <div>
         {{ plot_html|safe }}
     </div>
+
     <a href="/live_weather" class="btn btn-secondary mt-4">Back</a>
 </div>
 {% endblock %}

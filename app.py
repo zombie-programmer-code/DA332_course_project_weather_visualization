@@ -28,6 +28,7 @@ from datetime import timedelta
 #import tensorflow as tf
 app = Flask(__name__)
 db = SQL("sqlite:///weather.db")
+db1 = SQL("sqlite:///live_weather.db")
 city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", 
                       "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
                       "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
@@ -355,117 +356,112 @@ def forecasts():
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
     if request.method == 'POST':
-        # Get form data
-        city = request.form['city'].strip()  # Get city name and strip extra spaces
-        days = int(request.form['days'])
+        city = request.form['city'].strip()
+        hours = int(request.form['hours'])
 
-        # Calculate the start and end dates for the query
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
+        # Get lat/lon
+        lat, lon = get_lat_lon(city)
+        if lat is None or lon is None:
+            return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
 
-        # Query the database for the selected city and date range
-        query = """
-            SELECT date, max_temperature, min_temperature, total_rainfall, max_wind_speed
-            FROM weather_data
-            WHERE city = ? AND date BETWEEN ? AND ?
-            ORDER BY date DESC
-        """
-        rows = db.execute(query, city, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+        # Create the hourly_weather table if it doesn't exist
+        db1.execute("""
+            CREATE TABLE IF NOT EXISTS hourly_weather (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                city TEXT NOT NULL,
+                datetime TEXT NOT NULL,
+                temperature REAL,
+                feels_like REAL,
+                precipitation REAL,
+                wind_speed REAL,
+                wind_direction TEXT,
+                cloud_cover REAL,
+                humidity REAL,
+                pressure REAL
+            )
+        """)
 
-        # Convert the rows to a DataFrame
+        # Time range
+        end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        start_time = end_time - timedelta(hours=hours)
+
+        # Check existing data
+        rows = db1.execute(
+            "SELECT * FROM hourly_weather WHERE city = ? AND datetime BETWEEN ? AND ? ORDER BY datetime",
+            city, start_time.strftime('%Y-%m-%d %H:%M'), end_time.strftime('%Y-%m-%d %H:%M')
+        )
         df = pd.DataFrame(rows)
 
-        # Check for missing dates
-        if not df.empty:
-            # Convert the 'date' column to datetime for comparison
-            df['date'] = pd.to_datetime(df['date'])
-            available_dates = set(df['date'].dt.date)
-        else:
-            available_dates = set()
+        # Identify missing timestamps
+        existing_times = set(pd.to_datetime(df['datetime'])) if not df.empty else set()
+        expected_times = set(start_time + timedelta(hours=i) for i in range(hours))
+        missing_times = sorted(expected_times - existing_times)
 
-        # Generate the full range of requested dates
-        requested_dates = set((start_date + timedelta(days=i)).date() for i in range(days))
+        # Fetch and insert missing data
+        if missing_times:
+            print(f"Missing {len(missing_times)} hours for {city}. Fetching from API...")
 
-        # Find the missing dates
-        missing_dates = requested_dates - available_dates
+            api_df = get_historical_hourly_weather(api_key_weather, lat, lon, hours)
+            if api_df is None or api_df.empty:
+                return render_template('live_weather.html', error="Could not fetch hourly weather data.")
 
-        if missing_dates:
-            print(f"Missing dates for {city}: {missing_dates}. Fetching data...")
+            api_df = api_df[api_df["Datetime"].isin(missing_times)]
 
-            # Fetch data for the missing dates
-            missing_start_date = min(missing_dates)
-            missing_end_date = max(missing_dates)
-
-            # Get latitude and longitude for the city
-            lat, lon = get_lat_lon(city)
-            if lat is None or lon is None:
-                return render_template('live_weather.html', error=f"Could not fetch latitude and longitude for {city}.")
-
-            # Fetch historical weather data
-            weather_data = get_historical_weather(lat, lon, missing_start_date.strftime('%Y-%m-%d'), missing_end_date.strftime('%Y-%m-%d'))
-            if weather_data is None:
-                return render_template('live_weather.html', error=f"Could not fetch weather data for {city}.")
-
-            # Replace NaN values with None in the DataFrame
-            weather_data = weather_data.where(pd.notnull(weather_data), None)            
-            #weather_data['Date'] = weather_data['Date'].astype(str)  # Convert dates to strings
-            # Insert the fetched data into the database
-            for _, row in weather_data.iterrows():
-                db.execute("""
-                    INSERT INTO weather_data (
-                        city, date, max_temperature, min_temperature, total_rainfall, 
-                        sunrise_time, sunset_time, daylight_duration, 
-                        precipitation_hours, max_wind_speed
+            for _, row in api_df.iterrows():
+                db1.execute("""
+                    INSERT INTO hourly_weather (
+                        city, datetime, temperature, feels_like, precipitation, wind_speed, 
+                        wind_direction, cloud_cover, humidity, pressure
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, city,
-                    row['Date'].strftime('%Y-%m-%d'),
-                    row.get('Max Temperature (°C)', None),
-                    row.get('Min Temperature (°C)', None),
-                    row.get('Total Rainfall (mm)', None),
-                    row.get('Sunrise Time', None),
-                    row.get('Sunset Time', None),
-                    row.get('Daylight Duration', None),
-                    row.get('Precipitation Hours', None),
-                    row.get('Max Wind Speed (m/s)', None)
-                )
+                """, city, row['Datetime'].strftime('%Y-%m-%d %H:%M'), row['Temperature (°C)'], row['Feels Like (°C)'],
+                    row['Precipitation (mm)'], row['Wind Speed (kph)'], row['Wind Direction'],
+                    row['Cloud Cover (%)'], row['Humidity (%)'], row['Pressure (mb)'])
 
-            # Query the database again after inserting the missing data
-            rows = db.execute(query, city, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+            # Reload after insert
+            rows = db1.execute(
+                "SELECT * FROM hourly_weather WHERE city = ? AND datetime BETWEEN ? AND ? ORDER BY datetime",
+                city, start_time.strftime('%Y-%m-%d %H:%M'), end_time.strftime('%Y-%m-%d %H:%M')
+            )
             df = pd.DataFrame(rows)
 
         if df.empty:
-            return render_template('live_weather.html', error="No data found for the selected city and date range.")
+            return render_template('live_weather.html', error="No hourly data found.")
 
-        # Generate a Plotly table to display the weather data
-        import plotly.graph_objects as go  # Import graph_objects for table creation
+        # Render Plotly table
+        import plotly.graph_objects as go
+        df['datetime'] = pd.to_datetime(df['datetime'])
 
         fig = go.Figure(data=[go.Table(
             header=dict(
-                values=["Date", "Max Temperature (°C)", "Min Temperature (°C)", "Total Rainfall (mm)", "Max Wind Speed (m/s)"],
+                values=["Datetime", "Temperature (°C)", "Feels Like (°C)", "Precipitation (mm)",
+                        "Wind Speed (kph)", "Wind Direction", "Cloud Cover (%)",
+                        "Humidity (%)", "Pressure (mb)"],
                 fill_color='paleturquoise',
                 align='left'
             ),
             cells=dict(
                 values=[
-                    df['date'], 
-                    df['max_temperature'], 
-                    df['min_temperature'], 
-                    df['total_rainfall'], 
-                    df['max_wind_speed']
+                    df['datetime'].dt.strftime('%Y-%m-%d %H:%M'),
+                    df['temperature'],
+                    df['feels_like'],
+                    df['precipitation'],
+                    df['wind_speed'],
+                    df['wind_direction'],
+                    df['cloud_cover'],
+                    df['humidity'],
+                    df['pressure']
                 ],
                 fill_color='lavender',
                 align='left'
             )
         )])
 
-        # Convert the plot to HTML
-        plot_html = fig.to_html(full_html=False)
+        table_html = fig.to_html(full_html=False)
+        return render_template('live_weather_plot.html', plot_html=table_html, city=city, hours=hours)
 
-        # Render the plot in the HTML template
-        return render_template('live_weather_plot.html', plot_html=plot_html)
-
-    # Render the form if the request method is GET
+    # Render the input form
     return render_template('live_weather.html')
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
