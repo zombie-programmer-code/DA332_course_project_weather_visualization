@@ -29,6 +29,7 @@ import tensorflow as tf
 app = Flask(__name__)
 db = SQL("sqlite:///weather.db")
 db1 = SQL("sqlite:///live_weather.db")
+db2 = SQL("sqlite:///city_lat_long.db")
 city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", 
                       "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
                       "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
@@ -264,6 +265,48 @@ def get_historical_weather(latitude, longitude, start_date, end_date):
                 print("Failed to fetch data after multiple attempts.")
                 return None
 
+@app.before_request
+def populate_lat_long_table():
+    if not hasattr(app, 'db_initialized'):
+        app.db_initialized = True  # Set a flag to ensure this runs only once
+
+        # Check if the weather_data table exists and is not empty
+        table_exists = db2.execute("""
+            SELECT name FROM sqlite_master WHERE type='table' AND name='city_lat_long'
+        """)
+        if table_exists:
+            row_count = db.execute("SELECT COUNT(*) AS count FROM city_lat_long")[0]['count']
+            if row_count > 0:
+                print("Database already contains data. Skipping data insertion.")
+                return
+
+        # Create the weather_data table if it doesn't exist
+        db2.execute("""
+        CREATE TABLE IF NOT EXISTS city_lat_long (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            city TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL
+            )
+        """)
+
+        for city in city_names:
+            print(f"Processing data for {city}...")
+            try:
+                # Get lat/lon
+                lat, lon = get_lat_lon(city)
+                if lat is None or lon is None:
+                    print(f"Could not fetch coordinates for {city}.")
+                    continue
+
+                # Insert data into the city_lat_long table
+                db2.execute("""
+                    INSERT INTO city_lat_long (city, latitude, longitude) VALUES (?, ?, ?)
+                """, city, lat, lon)
+            except Exception as e:
+                print(f"Error processing {city}: {e}")
+
+    
 
 
 # Define the route for the homepage
