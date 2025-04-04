@@ -42,6 +42,7 @@ city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad",
 api_key = '126aff7cea9b454ca9c72738253103'
 @app.before_request
 def store_csv_in_database():
+    populate_lat_long_table()
     if not hasattr(app, 'db_initialized'):
         app.db_initialized = True  # Set a flag to ensure this runs only once
 
@@ -265,7 +266,6 @@ def get_historical_weather(latitude, longitude, start_date, end_date):
                 print("Failed to fetch data after multiple attempts.")
                 return None
 
-@app.before_request
 def populate_lat_long_table():
     if not hasattr(app, 'db_initialized'):
         app.db_initialized = True  # Set a flag to ensure this runs only once
