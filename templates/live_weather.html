@@ -15,9 +15,10 @@ Live Weather Conditions
     <!-- Form Section -->
     <form action="/live_weather" method="POST" style="background: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <div class="row mb-3">
-            <div class="col-md-6">
+            <div class="col-md-6 position-relative">
                 <label for="city" class="form-label" style="font-weight: bold; color: #34495e;">Enter City Name</label>
-                <input type="text" class="form-control" id="city" name="city" placeholder="Enter city name (e.g., Mumbai)" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
+                <input type="text" class="form-control" id="city" name="city" placeholder="Enter city name (e.g., Mumbai)" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;" autocomplete="off">
+                <ul id="suggestions" class="list-group mt-2" style="position: absolute; z-index: 1000; width: 100%;"></ul>
             </div>
             <div class="col-md-6">
                 <label for="hours" class="form-label" style="font-weight: bold; color: #34495e;">Past Hours</label>
@@ -31,4 +32,40 @@ Live Weather Conditions
         </div>
     </form>
 </div>
+
+<script>
+    const cityInput = document.getElementById('city');
+    const suggestionsList = document.getElementById('suggestions');
+
+    cityInput.addEventListener('input', function () {
+        const query = cityInput.value;
+
+        if (query.length > 0) {
+            fetch(`/autocomplete?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous suggestions
+                    suggestionsList.innerHTML = '';
+
+                    // Add new suggestions
+                    data.forEach(city => {
+                        const li = document.createElement('li');
+                        li.textContent = city;
+                        li.classList.add('list-group-item');
+                        li.style.cursor = 'pointer';
+
+                        // Add click event to select the city
+                        li.addEventListener('click', function () {
+                            cityInput.value = city;
+                            suggestionsList.innerHTML = ''; // Clear suggestions
+                        });
+
+                        suggestionsList.appendChild(li);
+                    });
+                });
+        } else {
+            suggestionsList.innerHTML = ''; // Clear suggestions if input is empty
+        }
+    });
+</script>
 {% endblock %}

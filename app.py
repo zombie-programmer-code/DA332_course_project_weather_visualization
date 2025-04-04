@@ -433,7 +433,19 @@ def forecasts():
     return "Forecasts Page (to be implemented)"
 
 
-import pandas as pd
+@app.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    # Load the world_cities_lat_long file
+    world_cities = pd.read_csv('data/world_cities_lat_long.csv')
+
+    # Get the query parameter
+    query = request.args.get('q', '').lower()
+
+    # Filter city names that match the query
+    suggestions = world_cities[world_cities['city'].str.lower().str.startswith(query)]['city'].unique()
+
+    # Return the suggestions as a JSON response
+    return jsonify(list(suggestions))
 
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
