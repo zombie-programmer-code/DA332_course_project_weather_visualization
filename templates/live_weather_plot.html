@@ -15,9 +15,37 @@ Live Weather Data
 
     <!-- Plot Section -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        {{ plot_html|safe }}
+        {{ table_html|safe }}
+    </div>
+    <!-- Temperature Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Temperature Trends</h4>
+        {{ temperature_plot_html|safe }}
     </div>
 
+    <!-- Precipitation Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Precipitation Trends</h4>
+        {{ precipitation_plot_html|safe }}
+    </div>
+
+    <!-- Wind Rose Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Wind Speed and Direction</h4>
+        {{ wind_rose_plot_html|safe }}
+    </div>
+
+    <!-- Cloud Cover Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Cloud Cover Trends</h4>
+        {{ cloud_cover_plot_html|safe }}
+    </div>
+
+    <!-- Humidity Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Humidity Trends</h4>
+        {{ humidity_plot_html|safe }}
+    </div>
     <!-- Nearby Cities Section -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <h4 class="mb-3" style="font-weight: bold;">Nearby Cities (within 500 km)</h4>

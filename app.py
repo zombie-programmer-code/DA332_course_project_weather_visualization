@@ -504,7 +504,76 @@ def live_weather():
         )])
 
         table_html = fig.to_html(full_html=False)
-        return render_template('live_weather_plot.html', plot_html=table_html, city=city, hours=hours, nearby_cities=nearby_cities)
+
+        temperature_fig = px.line(
+            api_df,
+            x='Datetime',
+            y=['Temperature (°C)', 'Feels Like (°C)'],
+            labels={'value': 'Temperature (°C)', 'variable': 'Metric'},
+            title=f"Temperature Trends for {city} (Last {hours} Hours)"
+        )
+        temperature_plot_html = temperature_fig.to_html(full_html=False)
+
+        # Precipitation Bar Plot
+        precipitation_fig = px.bar(
+            api_df,
+            x='Datetime',
+            y='Precipitation (mm)',
+            labels={'Precipitation (mm)': 'Precipitation (mm)'},
+            title=f"Precipitation Trends for {city} (Last {hours} Hours)"
+        )
+        precipitation_plot_html = precipitation_fig.to_html(full_html=False)
+
+        import plotly.graph_objects as go
+
+        # Wind Rose Chart
+        wind_rose_fig = go.Figure()
+        wind_rose_fig.add_trace(go.Barpolar(
+            r=api_df['Wind Speed (kph)'],
+            theta=api_df['Wind Direction'],
+            name='Wind Speed',
+            marker_color='blue'
+        ))
+        wind_rose_fig.update_layout(
+            title=f"Wind Speed and Direction for {city} (Last {hours} Hours)",
+            polar=dict(
+                angularaxis=dict(direction='clockwise')
+            )
+        )
+        wind_rose_plot_html = wind_rose_fig.to_html(full_html=False)
+
+        # Cloud Cover Line Plot
+        cloud_cover_fig = px.line(
+            api_df,
+            x='Datetime',
+            y='Cloud Cover (%)',
+            labels={'Cloud Cover (%)': 'Cloud Cover (%)'},
+            title=f"Cloud Cover Trends for {city} (Last {hours} Hours)"
+        )
+        cloud_cover_plot_html = cloud_cover_fig.to_html(full_html=False)
+
+        # Humidity Area Plot
+        humidity_fig = px.area(
+            api_df,
+            x='Datetime',
+            y='Humidity (%)',
+            labels={'Humidity (%)': 'Humidity (%)'},
+            title=f"Humidity Trends for {city} (Last {hours} Hours)"
+        )
+        humidity_plot_html = humidity_fig.to_html(full_html=False)
+
+        return render_template(
+            'live_weather_plot.html',
+            city=city,
+            hours=hours,
+            nearby_cities=nearby_cities,
+            table_html=table_html,
+            temperature_plot_html=temperature_plot_html,
+            precipitation_plot_html=precipitation_plot_html,
+            wind_rose_plot_html=wind_rose_plot_html,
+            cloud_cover_plot_html=cloud_cover_plot_html,
+            humidity_plot_html=humidity_plot_html
+        )
 
     # Render the input form
     return render_template('live_weather.html')
