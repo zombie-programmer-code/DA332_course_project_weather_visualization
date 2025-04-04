@@ -32,3 +32,4 @@ regex
 plotly
 vega_datasets
 pyLDAvis
+tensorflow
