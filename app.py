@@ -8,6 +8,8 @@ import plotly.express as px
 import requests
 import numpy as np
 import joblib
+from math import radians, sin, cos, sqrt, atan2
+
 from datetime import datetime, timedelta
 import time as tm  # Alias the time module to avoid conflicts with datetime.time
 from sklearn.ensemble import RandomForestRegressor
@@ -42,9 +44,20 @@ city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad",
                         "Panaji", "Shillong"]
 
 api_key = '126aff7cea9b454ca9c72738253103'
+def haversine(lat1, lon1, lat2, lon2):
+    """
+    Calculate the great-circle distance between two points on the Earth using the Haversine formula.
+    """
+    R = 6371  # Radius of the Earth in kilometers
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+
 @app.before_request
 def store_csv_in_database():
-    populate_lat_long_table()
+    #populate_lat_long_table()
     if not hasattr(app, 'db_initialized'):
         app.db_initialized = True  # Set a flag to ensure this runs only once
 
@@ -422,34 +435,44 @@ def forecasts():
     return "Forecasts Page (to be implemented)"
 
 
-
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
     if request.method == 'POST':
         city = request.form['city'].strip()
         hours = int(request.form['hours'])
 
-        # Get lat/lon
+        # Get latitude and longitude for the given city
         lat, lon = get_lat_lon(city)
         if lat is None or lon is None:
             return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
 
-        # Time range
+        # Find nearby cities
+        nearby_cities = []
+        for other_city in city_names:
+            if other_city != city:  # Skip the given city
+                other_lat, other_lon = get_lat_lon(other_city)
+                if other_lat is not None and other_lon is not None:
+                    distance = haversine(lat, lon, other_lat, other_lon)
+                    if distance <= 50:  # Define a radius of 50 km
+                        nearby_cities.append(other_city)
+
+        # Define the time range for data retrieval (with UTC timezone)
         end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=pytz.utc)
         start_time = end_time - timedelta(hours=hours)
 
-        # Fetch data from the API
+        # Fetch hourly weather data from the API
         print(f"Fetching data for {city} from the API...")
         api_df = get_historical_hourly_weather(api_key_weather, lat, lon, hours)
+        print(api_df)
         if api_df is None or api_df.empty:
             return render_template('live_weather.html', error="Could not fetch hourly weather data.")
 
-        # Convert UTC times in the DataFrame to local times
+        # Convert UTC times in the DataFrame to local times using your helper function
         api_df['Datetime'] = api_df['Datetime'].apply(lambda dt: convert_utc_to_local(dt, lat, lon))
+        print(api_df)
 
-        # Render Plotly table
+        # Render a Plotly table with the data
         import plotly.graph_objects as go
-
         fig = go.Figure(data=[go.Table(
             header=dict(
                 values=["Datetime (Local)", "Temperature (°C)", "Feels Like (°C)", "Precipitation (mm)",
@@ -476,10 +499,11 @@ def live_weather():
         )])
 
         table_html = fig.to_html(full_html=False)
-        return render_template('live_weather_plot.html', plot_html=table_html, city=city, hours=hours)
+        return render_template('live_weather_plot.html', plot_html=table_html, city=city, hours=hours, nearby_cities=nearby_cities)
 
     # Render the input form
     return render_template('live_weather.html')
+
 
 
 if __name__ == "__main__":
