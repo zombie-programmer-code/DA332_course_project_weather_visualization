@@ -26,6 +26,8 @@ import pandas as pd
 from datetime import timedelta
 from tensorflow.python.keras.models import load_model
 import tensorflow as tf
+from timezonefinder import TimezoneFinder
+import pytz
 app = Flask(__name__)
 db = SQL("sqlite:///weather.db")
 db1 = SQL("sqlite:///live_weather.db")
@@ -104,6 +106,26 @@ def store_csv_in_database():
                 print(f"Error processing {city}: {e}")
 
 api_key_weather = '126aff7cea9b454ca9c72738253103'
+def convert_utc_to_local(dt_utc, lat, lon):
+    """
+    Converts a UTC datetime to the local timezone based on latitude and longitude.
+    """
+    tf = TimezoneFinder()
+    timezone_str = tf.timezone_at(lat=lat, lng=lon)
+    
+    if timezone_str is None:
+        raise ValueError("Could not determine timezone from lat/lon.")
+
+    local_tz = pytz.timezone(timezone_str)
+    
+    # Check if the datetime is naive or already timezone-aware
+    if dt_utc.tzinfo is None:
+        # Localize the naive datetime to UTC
+        dt_utc = pytz.utc.localize(dt_utc)
+    
+    # Convert to local timezone
+    dt_local = dt_utc.astimezone(local_tz)
+    return dt_local
 
 def get_historical_hourly_weather(api_key, latitude, longitude, num_hours):
     """
@@ -150,8 +172,10 @@ def get_historical_hourly_weather(api_key, latitude, longitude, num_hours):
                 data = response.json()
 
                 for hour_data in data.get("forecast", {}).get("forecastday", [])[0].get("hour", []):
+                    utc_time = datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M')
+                    local_time = convert_utc_to_local(utc_time, latitude, longitude)
                     all_data.append({
-                        "Datetime": datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M'),
+                        "Datetime": local_time,
                         "Temperature (°C)": hour_data["temp_c"],
                         "Feels Like (°C)": hour_data["feelslike_c"],
                         "Precipitation (mm)": hour_data["precip_mm"],
@@ -171,6 +195,9 @@ def get_historical_hourly_weather(api_key, latitude, longitude, num_hours):
         current_time += timedelta(hours=1)
 
     df = pd.DataFrame(all_data)
+    # Convert both to naive datetimes
+    end_time = end_time.replace(tzinfo=None)
+    df["Datetime"] = df["Datetime"].dt.tz_localize(None)
     df = df[df["Datetime"] <= end_time]
     df = df.tail(num_hours).reset_index(drop=True)
 
@@ -407,76 +434,25 @@ def live_weather():
         if lat is None or lon is None:
             return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
 
-        # Create the hourly_weather table if it doesn't exist
-        db1.execute("""
-            CREATE TABLE IF NOT EXISTS hourly_weather (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                city TEXT NOT NULL,
-                datetime TEXT NOT NULL,
-                temperature REAL,
-                feels_like REAL,
-                precipitation REAL,
-                wind_speed REAL,
-                wind_direction TEXT,
-                cloud_cover REAL,
-                humidity REAL,
-                pressure REAL
-            )
-        """)
-
         # Time range
-        end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=pytz.utc)
         start_time = end_time - timedelta(hours=hours)
 
-        # Check existing data
-        rows = db1.execute(
-            "SELECT * FROM hourly_weather WHERE city = ? AND datetime BETWEEN ? AND ? ORDER BY datetime",
-            city, start_time.strftime('%Y-%m-%d %H:%M'), end_time.strftime('%Y-%m-%d %H:%M')
-        )
-        df = pd.DataFrame(rows)
+        # Fetch data from the API
+        print(f"Fetching data for {city} from the API...")
+        api_df = get_historical_hourly_weather(api_key_weather, lat, lon, hours)
+        if api_df is None or api_df.empty:
+            return render_template('live_weather.html', error="Could not fetch hourly weather data.")
 
-        # Identify missing timestamps
-        existing_times = set(pd.to_datetime(df['datetime'])) if not df.empty else set()
-        expected_times = set(start_time + timedelta(hours=i) for i in range(hours))
-        missing_times = sorted(expected_times - existing_times)
-
-        # Fetch and insert missing data
-        if missing_times:
-            print(f"Missing {len(missing_times)} hours for {city}. Fetching from API...")
-
-            api_df = get_historical_hourly_weather(api_key_weather, lat, lon, hours)
-            if api_df is None or api_df.empty:
-                return render_template('live_weather.html', error="Could not fetch hourly weather data.")
-
-            api_df = api_df[api_df["Datetime"].isin(missing_times)]
-
-            for _, row in api_df.iterrows():
-                db1.execute("""
-                    INSERT INTO hourly_weather (
-                        city, datetime, temperature, feels_like, precipitation, wind_speed, 
-                        wind_direction, cloud_cover, humidity, pressure
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, city, row['Datetime'].strftime('%Y-%m-%d %H:%M'), row['Temperature (°C)'], row['Feels Like (°C)'],
-                    row['Precipitation (mm)'], row['Wind Speed (kph)'], row['Wind Direction'],
-                    row['Cloud Cover (%)'], row['Humidity (%)'], row['Pressure (mb)'])
-
-            # Reload after insert
-            rows = db1.execute(
-                "SELECT * FROM hourly_weather WHERE city = ? AND datetime BETWEEN ? AND ? ORDER BY datetime",
-                city, start_time.strftime('%Y-%m-%d %H:%M'), end_time.strftime('%Y-%m-%d %H:%M')
-            )
-            df = pd.DataFrame(rows)
-
-        if df.empty:
-            return render_template('live_weather.html', error="No hourly data found.")
+        # Convert UTC times in the DataFrame to local times
+        api_df['Datetime'] = api_df['Datetime'].apply(lambda dt: convert_utc_to_local(dt, lat, lon))
 
         # Render Plotly table
         import plotly.graph_objects as go
-        df['datetime'] = pd.to_datetime(df['datetime'])
 
         fig = go.Figure(data=[go.Table(
             header=dict(
-                values=["Datetime", "Temperature (°C)", "Feels Like (°C)", "Precipitation (mm)",
+                values=["Datetime (Local)", "Temperature (°C)", "Feels Like (°C)", "Precipitation (mm)",
                         "Wind Speed (kph)", "Wind Direction", "Cloud Cover (%)",
                         "Humidity (%)", "Pressure (mb)"],
                 fill_color='paleturquoise',
@@ -484,15 +460,15 @@ def live_weather():
             ),
             cells=dict(
                 values=[
-                    df['datetime'].dt.strftime('%Y-%m-%d %H:%M'),
-                    df['temperature'],
-                    df['feels_like'],
-                    df['precipitation'],
-                    df['wind_speed'],
-                    df['wind_direction'],
-                    df['cloud_cover'],
-                    df['humidity'],
-                    df['pressure']
+                    api_df['Datetime'].dt.strftime('%Y-%m-%d %H:%M'),
+                    api_df['Temperature (°C)'],
+                    api_df['Feels Like (°C)'],
+                    api_df['Precipitation (mm)'],
+                    api_df['Wind Speed (kph)'],
+                    api_df['Wind Direction'],
+                    api_df['Cloud Cover (%)'],
+                    api_df['Humidity (%)'],
+                    api_df['Pressure (mb)']
                 ],
                 fill_color='lavender',
                 align='left'
