@@ -180,11 +180,11 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
 
                 response.raise_for_status()
                 data = response.json()
-
+                #print(data)
                 for hour_data in data.get("forecast", {}).get("forecastday", [])[0].get("hour", []):
                     utc_time = datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M')
                     local_time = convert_utc_to_local(utc_time, latitude, longitude)
-                    all_data.append({
+                    this_hour = {
                         "Datetime": local_time,
                         "Temperature (°C)": hour_data["temp_c"],
                         "Feels Like (°C)": hour_data["feelslike_c"],
@@ -194,8 +194,9 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
                         "Cloud Cover (%)": hour_data["cloud"],
                         "Humidity (%)": hour_data["humidity"],
                         "Pressure (mb)": hour_data["pressure_mb"]
-                    })
-
+                    }
+                    all_data.append(this_hour)
+                    print(this_hour)
                 break
 
             except requests.exceptions.RequestException as e:
@@ -206,9 +207,9 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
 
     df = pd.DataFrame(all_data)
     # Convert both to naive datetimes
-    end_time = end_time.replace(tzinfo=None)
-    df["Datetime"] = df["Datetime"].dt.tz_localize(None)
-    df = df[df["Datetime"] <= end_time]
+    #end_time = end_time.replace(tzinfo=None)
+    #df["Datetime"] = df["Datetime"].dt.tz_localize(None)
+    #df = df[df["Datetime"] <= end_time]
     df = df.tail(num_hours).reset_index(drop=True)
 
     return df
@@ -432,6 +433,8 @@ def forecasts():
     return "Forecasts Page (to be implemented)"
 
 
+import pandas as pd
+
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
     if request.method == 'POST':
@@ -443,16 +446,21 @@ def live_weather():
         if lat is None or lon is None:
             return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
 
-        # Find nearby cities with distances
-        nearby_cities = []
-        for other_city in city_names:
-            if other_city != city:  # Skip the given city
-                other_lat, other_lon = get_lat_lon(other_city)
-                if other_lat is not None and other_lon is not None:
-                    distance = haversine(lat, lon, other_lat, other_lon)
-                    if distance <= 500:  # Define a radius of 50 km
-                        nearby_cities.append((other_city, round(distance, 2)))  # Add city and distance (rounded to 2 decimals)
+        # Load the world_cities_lat_long file
+        world_cities = pd.read_csv('data/world_cities_lat_long.csv')  # Ensure the file is in the correct path
 
+        # Find nearby cities within a 500 km radius
+        nearby_cities = []
+        for _, row in world_cities.iterrows():
+            other_city = row['city']
+            other_country = row['country']
+            other_lat = row['latitude']
+            other_lon = row['longitude']
+            if(city != other_city):
+                distance = haversine(lat, lon, other_lat, other_lon)
+                if distance <= 500:  # Restrict radius to 500 km
+                    nearby_cities.append((other_city, other_country, round(distance, 2)))  # Add city, country, and distance
+        nearby_cities = sorted(nearby_cities, key=lambda x: x[2])
         # Define the time range for data retrieval (with UTC timezone)
         end_time = datetime.now(pytz.utc).replace(minute=0, second=0, microsecond=0)
         start_time = end_time - timedelta(hours=hours)

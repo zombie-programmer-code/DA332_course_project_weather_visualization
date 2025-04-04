@@ -20,11 +20,23 @@ Live Weather Data
 
     <!-- Nearby Cities Section -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h4 class="mb-3" style="font-weight: bold;">Nearby Cities (within 50 km)</h4>
+        <h4 class="mb-3" style="font-weight: bold;">Nearby Cities (within 500 km)</h4>
         {% if nearby_cities %}
-            <ul>
-                {% for nearby_city, distance in nearby_cities %}
-                    <li>{{ nearby_city }} - {{ distance }} km</li>
+            <ul style="list-style: none; padding: 0;">
+                {% for nearby_city, country, distance in nearby_cities %}
+                    <li style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span>
+                            {{ nearby_city }}, {{ country }} - {{ distance }} km
+                        </span>
+                        <!-- Form to search weather for the nearby city -->
+                        <form method="POST" action="/live_weather" style="margin: 0;">
+                            <input type="hidden" name="city" value="{{ nearby_city }}">
+                            <input type="hidden" name="hours" value="12">
+                            <button type="submit" class="btn btn-sm btn-primary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                Search Weather
+                            </button>
+                        </form>
+                    </li>
                 {% endfor %}
             </ul>
         {% else %}
