@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+About
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="text-center p-4 mb-4" style="background: linear-gradient(45deg, #8e44ad, #9b59b6); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">About This Project</h1>
+        <p style="font-size: 1.2rem;">Learn more about the Weather Visualization project.</p>
+    </div>
+
+    <!-- About Content -->
+    <div class="p-4" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h3 style="color: #34495e;">What is this project?</h3>
+        <p style="font-size: 1rem; color: #7f8c8d;">
+            This project is a weather visualization tool that provides real-time weather data for cities around the world. 
+            It uses APIs to fetch live weather data and displays it on an interactive map. Users can also view historical weather trends for several major Indian cities.
+            Recent weather for any city in the world can also be viewed by entering the city name and the number of past hours, using various plots. The user can also look at the weather of nearby cities.
+            The project is built using Flask, Plotly, and SQLite, making it a powerful tool for weather enthusiasts and researchers,as well as the general public. 
+        </p>
+
+        <h3 style="color: #34495e;">Features</h3>
+        <ul style="font-size: 1rem; color: #7f8c8d;">
+            <li>Real-time weather data visualization</li>
+            <li>Interactive map with weather details for multiple cities</li>
+            <li>Historical weather data analysis</li>
+        </ul>
+
+        <h3 style="color: #34495e;">Technologies Used</h3>
+        <ul style="font-size: 1rem; color: #7f8c8d;">
+            <li>Flask (Python) for the backend</li>
+            <li>Plotly for interactive visualizations</li>
+            <li>SQLite for data storage</li>
+            <li>HTML, CSS, and Bootstrap for the frontend</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

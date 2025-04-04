@@ -560,6 +560,10 @@ def live_weather_map():
 
     return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
 
+@app.route('/about', methods=['GET'])
+def about():
+    return render_template('about.html')
+
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
     if request.method == 'POST':
