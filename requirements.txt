@@ -33,3 +33,4 @@ plotly
 vega_datasets
 pyLDAvis
 tensorflow
+timezonefinder
