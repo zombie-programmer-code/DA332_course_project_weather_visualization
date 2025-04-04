@@ -140,7 +140,7 @@ def convert_utc_to_local(dt_utc, lat, lon):
     dt_local = dt_utc.astimezone(local_tz)
     return dt_local
 
-def get_historical_hourly_weather(api_key, latitude, longitude, num_hours):
+def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_time, num_hours):
     """
     Fetches historical hourly weather data for a given location and number of hours in the past.
     Implements retry logic if the API rate limit is exceeded.
@@ -156,9 +156,6 @@ def get_historical_hourly_weather(api_key, latitude, longitude, num_hours):
     """
     if num_hours > 720:  # WeatherAPI.com allows fetching data up to 30 days (720 hours) in the past
         raise ValueError("WeatherAPI.com's History API allows fetching data for up to 30 days (720 hours) in the past.")
-
-    end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-    start_time = end_time - timedelta(hours=num_hours)
 
     base_url = "http://api.weatherapi.com/v1/history.json"
     all_data = []
@@ -446,23 +443,23 @@ def live_weather():
         if lat is None or lon is None:
             return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
 
-        # Find nearby cities
+        # Find nearby cities with distances
         nearby_cities = []
         for other_city in city_names:
             if other_city != city:  # Skip the given city
                 other_lat, other_lon = get_lat_lon(other_city)
                 if other_lat is not None and other_lon is not None:
                     distance = haversine(lat, lon, other_lat, other_lon)
-                    if distance <= 50:  # Define a radius of 50 km
-                        nearby_cities.append(other_city)
+                    if distance <= 500:  # Define a radius of 50 km
+                        nearby_cities.append((other_city, round(distance, 2)))  # Add city and distance (rounded to 2 decimals)
 
         # Define the time range for data retrieval (with UTC timezone)
-        end_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=pytz.utc)
+        end_time = datetime.now(pytz.utc).replace(minute=0, second=0, microsecond=0)
         start_time = end_time - timedelta(hours=hours)
 
         # Fetch hourly weather data from the API
         print(f"Fetching data for {city} from the API...")
-        api_df = get_historical_hourly_weather(api_key_weather, lat, lon, hours)
+        api_df = get_historical_hourly_weather(api_key_weather, lat, lon, end_time, start_time, hours)
         print(api_df)
         if api_df is None or api_df.empty:
             return render_template('live_weather.html', error="Could not fetch hourly weather data.")
