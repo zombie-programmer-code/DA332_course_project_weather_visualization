@@ -275,7 +275,7 @@ def populate_lat_long_table():
             SELECT name FROM sqlite_master WHERE type='table' AND name='city_lat_long'
         """)
         if table_exists:
-            row_count = db.execute("SELECT COUNT(*) AS count FROM city_lat_long")[0]['count']
+            row_count = db2.execute("SELECT COUNT(*) AS count FROM city_lat_long")[0]['count']
             if row_count > 0:
                 print("Database already contains data. Skipping data insertion.")
                 return
