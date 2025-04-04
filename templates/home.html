@@ -6,38 +6,42 @@ Welcome to Weather Visualization!
 
 {% block main %}
 <div class="container mt-4">
-    <h1 class="mb-4">Welcome to the Weather Visualization Project!</h1>
-    <p>Explore weather trends, forecasts, and live conditions for your favorite cities.</p>
+    <h1 class="mb-4 text-center" style="font-family: 'Arial', sans-serif; font-weight: bold; color: #2c3e50;">
+        Welcome to the Weather Visualization Project!
+    </h1>
+    <p class="text-center" style="font-size: 1.2rem; color: #7f8c8d;">
+        Explore weather trends, forecasts, and live conditions for your favorite cities.
+    </p>
 
     <!-- Call to Action -->
     <div class="row mb-4 justify-content-center">
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
                 <img src="{{ url_for('static', filename='historical_trends.png') }}" class="card-img-top" alt="Historical Trends" style="height: 200px; object-fit: cover;">
-                <div class="card-body">
-                    <h5 class="card-title">Historical Trends</h5>
-                    <p class="card-text">Analyze past weather data to uncover trends and patterns.</p>
-                    <a href="/historical_trends" class="btn btn-primary">View Trends</a>
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Historical Trends</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Analyze past weather data to uncover trends and patterns.</p>
+                    <a href="/historical_trends" class="btn btn-primary" style="background: linear-gradient(45deg, #3498db, #2980b9); border: none;">View Trends</a>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
                 <img src="{{ url_for('static', filename='forecasts.jpg') }}" class="card-img-top" alt="Forecasts" style="height: 200px; object-fit: cover;">
-                <div class="card-body">
-                    <h5 class="card-title">Weather Forecasts</h5>
-                    <p class="card-text">Get accurate weather forecasts for the days ahead.</p>
-                    <a href="/forecasts" class="btn btn-primary">View Forecasts</a>
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Weather Forecasts</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Get accurate weather forecasts for the days ahead.</p>
+                    <a href="/forecasts" class="btn btn-primary" style="background: linear-gradient(45deg, #e67e22, #d35400); border: none;">View Forecasts</a>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
                 <img src="{{ url_for('static', filename='live_weather.jpeg') }}" class="card-img-top" alt="Live Weather" style="height: 200px; object-fit: cover;">
-                <div class="card-body">
-                    <h5 class="card-title">Live Weather</h5>
-                    <p class="card-text">Check real-time weather conditions for your city.</p>
-                    <a href="/live_weather" class="btn btn-primary">View Live Weather</a>
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions for your city.</p>
+                    <a href="/live_weather" class="btn btn-primary" style="background: linear-gradient(45deg, #2ecc71, #27ae60); border: none;">View Live Weather</a>
                 </div>
             </div>
         </div>
@@ -46,22 +50,21 @@ Welcome to Weather Visualization!
     <!-- Features -->
     <div class="row text-center justify-content-center">
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden;">
                 <div class="card-body">
-                    <h5 class="card-title">Comprehensive Data</h5>
-                    <p class="card-text">Access detailed weather data for multiple cities.</p>
+                    <h5 class="card-title" style="color: #34495e;">Comprehensive Data</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Access detailed weather data for multiple cities.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden;">
                 <div class="card-body">
-                    <h5 class="card-title">User-Friendly Interface</h5>
-                    <p class="card-text">Navigate easily through our intuitive design.</p>
+                    <h5 class="card-title" style="color: #34495e;">User-Friendly Interface</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Navigate easily through our intuitive design.</p>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 {% endblock %}

@@ -6,22 +6,29 @@ Live Weather Conditions
 
 {% block main %}
 <div class="container mt-4">
-    <h1 class="mb-4">Live Weather Conditions</h1>
-    <p>Enter the city name and the number of past days to view the weather conditions.</p>
+    <!-- Header Section -->
+    <div class="text-center p-4 mb-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">Live Weather Conditions</h1>
+        <p style="font-size: 1.2rem;">Enter the city name and the number of past hours to view the weather conditions.</p>
+    </div>
 
-    <!-- Form for entering city name and number of past days -->
-    <form action="/live_weather" method="POST">
+    <!-- Form Section -->
+    <form action="/live_weather" method="POST" style="background: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <div class="row mb-3">
             <div class="col-md-6">
-                <label for="city" class="form-label">Enter City Name</label>
-                <input type="text" class="form-control" id="city" name="city" placeholder="Enter city name (e.g., Mumbai)" required>
+                <label for="city" class="form-label" style="font-weight: bold; color: #34495e;">Enter City Name</label>
+                <input type="text" class="form-control" id="city" name="city" placeholder="Enter city name (e.g., Mumbai)" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
             </div>
             <div class="col-md-6">
-                <label for="days" class="form-label">Past Hours</label>
-                <input type="number" class="form-control" id="hours" name="hours" placeholder="Enter number of days (e.g., 7)" required>
+                <label for="hours" class="form-label" style="font-weight: bold; color: #34495e;">Past Hours</label>
+                <input type="number" class="form-control" id="hours" name="hours" placeholder="Enter number of hours (e.g., 24)" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
             </div>
         </div>
-        <button type="submit" class="btn btn-primary">View Weather</button>
+        <div class="text-center">
+            <button type="submit" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; transition: transform 0.3s;">
+                View Weather
+            </button>
+        </div>
     </form>
 </div>
 {% endblock %}

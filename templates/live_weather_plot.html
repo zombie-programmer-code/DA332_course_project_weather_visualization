@@ -6,13 +6,23 @@ Live Weather Data
 
 {% block main %}
 <div class="container mt-4">
-    <h1 class="mb-2">Live Weather Data</h1>
-    <h4 class="text-muted mb-4">City: {{ city }}</h4>
-    <h4 class="text-muted mb-4">Weather data for the past Hours: {{ hours }}</h4>
-    <div>
+    <!-- Header Section -->
+    <div class="text-center p-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">Live Weather Data</h1>
+        <h4 class="text-light mb-2">City: {{ city }}</h4>
+        <h5 class="text-light">Weather data for the past {{ hours }} hours</h5>
+    </div>
+
+    <!-- Plot Section -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         {{ plot_html|safe }}
     </div>
 
-    <a href="/live_weather" class="btn btn-secondary mt-4">Back</a>
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="/live_weather" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;">
+            Back
+        </a>
+    </div>
 </div>
 {% endblock %}

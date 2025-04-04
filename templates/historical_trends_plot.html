@@ -6,18 +6,35 @@ Historical Weather Trends
 
 {% block main %}
 <div class="container mt-4">
-    <h1 class="mb-4">Historical Weather Trends</h1>
-
-    <h2>Line Plot</h2>
-    <div>
-        {{ line_plot_html|safe }}
+    <!-- Header Section -->
+    <div class="text-center p-4 mb-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">Historical Weather Trends</h1>
+        <p style="font-size: 1.2rem;">Visualize historical weather data with line and box plots.</p>
     </div>
 
-    <h2>Box Plot</h2>
-    <div>
-        {{ box_plot_html|safe }}
+    <!-- Line Plot Section -->
+    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Line Plot</h2>
+        <div style="overflow-x: auto;">
+            {{ line_plot_html|safe }}
+        </div>
     </div>
 
-    <a href="/historical_trends" class="btn btn-secondary mt-4">Back</a>
+    <!-- Box Plot Section -->
+    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Box Plot</h2>
+        <div style="overflow-x: auto;">
+            {{ box_plot_html|safe }}
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center">
+        <a href="/historical_trends" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;" 
+           onmouseover="this.style.transform='scale(1.05)'" 
+           onmouseout="this.style.transform='scale(1)'">
+            Back
+        </a>
+    </div>
 </div>
 {% endblock %}
