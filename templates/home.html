@@ -45,6 +45,16 @@ Welcome to Weather Visualization!
                 </div>
             </div>
         </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+                <img src="{{ url_for('static', filename='live_weather_map_my.png') }}" class="card-img-top" alt="Live Weather" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions around the world.</p>
+                    <a href="/live_weather_map" class="btn btn-primary" style="background: linear-gradient(45deg, #2ecc71, #27ae60); border: none;">View Live Weather Map</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Features -->

@@ -32,7 +32,7 @@ from timezonefinder import TimezoneFinder
 import pytz
 app = Flask(__name__)
 db = SQL("sqlite:///weather.db")
-db1 = SQL("sqlite:///live_weather.db")
+db1 = SQL("sqlite:///live_weather_map.db")
 db2 = SQL("sqlite:///city_lat_long.db")
 city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", 
                       "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
@@ -201,7 +201,7 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
 
             except requests.exceptions.RequestException as e:
                 print(f"Request failed: {e}. Retrying in 60 seconds...")
-                time.sleep(60)
+                tm.sleep(60)
 
         current_time += timedelta(hours=1)
 
@@ -446,6 +446,118 @@ def autocomplete():
 
     # Return the suggestions as a JSON response
     return jsonify(list(suggestions))
+
+@app.route('/live_weather_map', methods=['GET'])
+def live_weather_map():
+    # Create the weather_map_data table if it doesn't exist
+    db1.execute("""
+        CREATE TABLE IF NOT EXISTS weather_map_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            city TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            temperature REAL,
+            humidity REAL,
+            precipitation REAL,
+            utc_time TEXT NOT NULL
+        )
+    """)
+
+    # Load the world_cities_lat_long file
+    selected_cities = pd.read_csv('data/world_cities_map.csv')
+
+    # Prepare data for the map
+    map_data = []
+    current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+    for _, row in selected_cities.iterrows():
+        city = row['city']
+        lat = row['latitude']
+        lon = row['longitude']
+
+        city = str(city)
+
+# Ensure current_utc_time is properly formatted
+        current_utc_time_str = current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
+        # Ensure current_utc_time is properly formatted
+        current_utc_time_str = current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Use the formatted string in the query
+        existing_data = db1.execute(
+            "SELECT * FROM weather_map_data WHERE city = ? AND utc_time = ?",
+            city, current_utc_time_str
+)
+
+        if existing_data:
+            # Use the existing data
+            map_data.append({
+                'city': city,
+                'lat': lat,
+                'lon': lon,
+                'temperature': existing_data[0]['temperature'],
+                'humidity': existing_data[0]['humidity'],
+                'precipitation': existing_data[0]['precipitation']
+            })
+        else:
+            # Fetch weather data for the city (last hour)
+            weather_data = get_historical_hourly_weather(
+                api_key_weather, lat, lon, current_utc_time, current_utc_time - timedelta(hours=1), 1
+            )
+            if not weather_data.empty:
+                # Extract the first row of weather data
+                weather_row = weather_data.iloc[0]
+                temperature = weather_row['Temperature (°C)']
+                humidity = weather_row['Humidity (%)']
+                humidity = float(weather_row['Humidity (%)'])  # Convert numpy.int64 to float
+                precipitation = weather_row['Precipitation (mm)']
+                print(f"Inserting data for city: {city}")
+                print(f"Data types: city={type(city)}, lat={type(lat)}, lon={type(lon)}, "
+                    f"temperature={type(temperature)}, humidity={type(humidity)}, "
+                    f"precipitation={type(precipitation)}, utc_time={type(current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))}")
+                                # Store the data in the database
+                db1.execute("""
+                    INSERT INTO weather_map_data (
+                        city, latitude, longitude, temperature, humidity, precipitation, utc_time
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
+
+                # Add the data to the map
+                map_data.append({
+                    'city': city,
+                    'lat': lat,
+                    'lon': lon,
+                    'temperature': temperature,
+                    'humidity': humidity,
+                    'precipitation': precipitation
+                })
+
+    # Convert to DataFrame
+    map_df = pd.DataFrame(map_data)
+
+    # Generate the map
+    import plotly.express as px
+    fig = px.scatter_mapbox(
+        map_df,
+        lat='lat',
+        lon='lon',
+        hover_name='city',
+        hover_data={
+            'temperature': True,
+            'humidity': True,
+            'precipitation': True
+        },
+        color='temperature',
+        size='humidity',
+        color_continuous_scale='Viridis',
+        title='Weather Data for 100 Cities (Last Hour)'
+    )
+    fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=2, mapbox_center={'lat': 20, 'lon': 0})
+    fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
+
+    # Convert the map to HTML
+    map_html = fig.to_html(full_html=False)
+
+    return render_template('live_weather_map.html', map_html=map_html)
 
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
