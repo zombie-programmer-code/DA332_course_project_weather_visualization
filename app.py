@@ -477,9 +477,6 @@ def live_weather_map():
 
         city = str(city)
 
-# Ensure current_utc_time is properly formatted
-        current_utc_time_str = current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
-        # Ensure current_utc_time is properly formatted
         current_utc_time_str = current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
 
         # Use the formatted string in the query
@@ -489,7 +486,6 @@ def live_weather_map():
 )
 
         if existing_data:
-            # Use the existing data
             map_data.append({
                 'city': city,
                 'lat': lat,
@@ -499,7 +495,6 @@ def live_weather_map():
                 'precipitation': existing_data[0]['precipitation']
             })
         else:
-            # Fetch weather data for the city (last hour)
             weather_data = get_historical_hourly_weather(
                 api_key_weather, lat, lon, current_utc_time, current_utc_time - timedelta(hours=1), 1
             )
@@ -508,7 +503,7 @@ def live_weather_map():
                 weather_row = weather_data.iloc[0]
                 temperature = weather_row['Temperature (°C)']
                 humidity = weather_row['Humidity (%)']
-                humidity = float(weather_row['Humidity (%)'])  # Convert numpy.int64 to float
+                humidity = float(weather_row['Humidity (%)'])  
                 precipitation = weather_row['Precipitation (mm)']
                 print(f"Inserting data for city: {city}")
                 print(f"Data types: city={type(city)}, lat={type(lat)}, lon={type(lon)}, "
@@ -590,7 +585,6 @@ def live_weather():
                 if distance <= 500:  # Restrict radius to 500 km
                     nearby_cities.append((other_city, other_country, round(distance, 2)))  # Add city, country, and distance
         nearby_cities = sorted(nearby_cities, key=lambda x: x[2])
-        # Define the time range for data retrieval (with UTC timezone)
         end_time = datetime.now(pytz.utc).replace(minute=0, second=0, microsecond=0)
         start_time = end_time - timedelta(hours=hours)
 
@@ -601,7 +595,6 @@ def live_weather():
         if api_df is None or api_df.empty:
             return render_template('live_weather.html', error="Could not fetch hourly weather data.")
 
-        # Convert UTC times in the DataFrame to local times using your helper function
         api_df['Datetime'] = api_df['Datetime'].apply(lambda dt: convert_utc_to_local(dt, lat, lon))
         print(api_df)
 
@@ -643,7 +636,6 @@ def live_weather():
         )
         temperature_plot_html = temperature_fig.to_html(full_html=False)
 
-        # Precipitation Bar Plot
         precipitation_fig = px.bar(
             api_df,
             x='Datetime',
