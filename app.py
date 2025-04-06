@@ -160,14 +160,20 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
     base_url = "http://api.weatherapi.com/v1/history.json"
     all_data = []
 
-    current_time = start_time
-    while current_time <= end_time:
+    # Convert UTC time range to local time range
+    local_start_time = convert_utc_to_local(start_time, latitude, longitude)
+    local_end_time = convert_utc_to_local(end_time, latitude, longitude)
+
+    print(f"Converted UTC time range to local time range: {local_start_time} - {local_end_time}")
+
+    current_time = local_start_time
+    while current_time <= local_end_time:
         date_str = current_time.strftime('%Y-%m-%d')
         params = {
             "key": api_key,
             "q": f"{latitude},{longitude}",
             "dt": date_str,
-            "hour": current_time.hour
+            "hour": current_time.hour  # Use the local hour
         }
 
         while True:
@@ -175,17 +181,23 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
                 response = requests.get(base_url, params=params)
                 if response.status_code == 429:
                     print("Rate limit exceeded. Waiting 60 seconds before retrying...")
-                    time.sleep(60)
+                    tm.sleep(60)
                     continue
 
                 response.raise_for_status()
                 data = response.json()
-                #print(data)
+
                 for hour_data in data.get("forecast", {}).get("forecastday", [])[0].get("hour", []):
-                    utc_time = datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M')
-                    local_time = convert_utc_to_local(utc_time, latitude, longitude)
+                    # Parse the local time from the API
+                    local_time = datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M')
+
+                    # Convert local time to UTC for consistency
+                    local_time_zone = pytz.timezone(hour_data.get("tz_id", "UTC"))  # Use the time zone ID from the API if available
+                    local_time = local_time_zone.localize(local_time)  # Localize the naive datetime
+                    utc_time = local_time.astimezone(pytz.utc)  # Convert to UTC
+
                     this_hour = {
-                        "Datetime": local_time,
+                        "Datetime": utc_time,
                         "Temperature (°C)": hour_data["temp_c"],
                         "Feels Like (°C)": hour_data["feelslike_c"],
                         "Precipitation (mm)": hour_data["precip_mm"],
@@ -206,10 +218,7 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
         current_time += timedelta(hours=1)
 
     df = pd.DataFrame(all_data)
-    # Convert both to naive datetimes
-    #end_time = end_time.replace(tzinfo=None)
-    #df["Datetime"] = df["Datetime"].dt.tz_localize(None)
-    #df = df[df["Datetime"] <= end_time]
+    # Keep only the last `num_hours` rows
     df = df.tail(num_hours).reset_index(drop=True)
 
     return df
@@ -528,7 +537,7 @@ def live_weather_map():
 
     # Convert to DataFrame
     map_df = pd.DataFrame(map_data)
-
+    print(map_df)
     # Generate the map
     import plotly.express as px
     fig = px.scatter_mapbox(
@@ -610,7 +619,8 @@ def live_weather():
 
         end_time = datetime.now(pytz.utc).replace(minute=0, second=0, microsecond=0)
         start_time = end_time - timedelta(hours=hours)
-
+        print(f"start time is {start_time}")
+        print(f"end time is {end_time}")
         # Fetch hourly weather data from the API
         print(f"Fetching data for {city} from the API...")
         api_df = get_historical_hourly_weather(api_key_weather, lat, lon, end_time, start_time, hours)
@@ -618,7 +628,6 @@ def live_weather():
         if api_df is None or api_df.empty:
             return render_template('live_weather.html', error="Could not fetch hourly weather data.")
 
-        api_df['Datetime'] = api_df['Datetime'].apply(lambda dt: convert_utc_to_local(dt, lat, lon))
         print(api_df)
 
         # Render a Plotly table with the data
