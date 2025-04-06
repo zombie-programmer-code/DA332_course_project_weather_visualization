@@ -575,6 +575,8 @@ def live_weather():
 
         # Find nearby cities within a 500 km radius
         nearby_cities = []
+        dist = 0
+        map_data = [{'city': city, 'lat': lat, 'lon': lon, 'type': 'Requested City', 'distance': dist}]  # Add the requested city
         for _, row in world_cities.iterrows():
             other_city = row['city']
             other_country = row['country']
@@ -584,7 +586,28 @@ def live_weather():
                 distance = haversine(lat, lon, other_lat, other_lon)
                 if distance <= 500:  # Restrict radius to 500 km
                     nearby_cities.append((other_city, other_country, round(distance, 2)))  # Add city, country, and distance
+                    map_data.append({'city': other_city, 'lat': other_lat, 'lon': other_lon, 'type': 'Nearby City', 'distance': round(distance, 2)})
+
         nearby_cities = sorted(nearby_cities, key=lambda x: x[2])
+
+        map_df = pd.DataFrame(map_data)
+        fig = px.scatter_mapbox(
+            map_df,
+            lat='lat',
+            lon='lon',
+            hover_name='city',
+            hover_data=['distance'],
+            color='type',
+            title=f"Requested City and Nearby Cities (500 km radius)",
+            color_discrete_map={'Requested City': 'red', 'Nearby City': 'blue'},
+            size=[10 if t == 'Requested City' else 5 for t in map_df['type']],  # Larger size for the requested city
+        )
+        fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': lat, 'lon': lon})
+        fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
+
+        # Convert the map to HTML
+        map_html = fig.to_html(full_html=False)
+
         end_time = datetime.now(pytz.utc).replace(minute=0, second=0, microsecond=0)
         start_time = end_time - timedelta(hours=hours)
 
@@ -689,6 +712,7 @@ def live_weather():
             hours=hours,
             nearby_cities=nearby_cities,
             table_html=table_html,
+            map_html=map_html,
             temperature_plot_html=temperature_plot_html,
             precipitation_plot_html=precipitation_plot_html,
             wind_rose_plot_html=wind_rose_plot_html,
