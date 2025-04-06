@@ -2,7 +2,7 @@ import os
 import csv
 from datetime import datetime, time, timedelta
 from cs50 import SQL
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 import pandas as pd
 import plotly.express as px
 import requests
@@ -471,7 +471,7 @@ def live_weather_map():
             utc_time TEXT NOT NULL
         )
     """)
-
+    flag = 0
     # Load the world_cities_lat_long file
     selected_cities = pd.read_csv('data/world_cities_map.csv')
 
@@ -492,7 +492,7 @@ def live_weather_map():
         existing_data = db1.execute(
             "SELECT * FROM weather_map_data WHERE city = ? AND utc_time = ?",
             city, current_utc_time_str
-)
+        )
 
         if existing_data:
             map_data.append({
@@ -503,6 +503,7 @@ def live_weather_map():
                 'humidity': existing_data[0]['humidity'],
                 'precipitation': existing_data[0]['precipitation']
             })
+            flag = 1
         else:
             weather_data = get_historical_hourly_weather(
                 api_key_weather, lat, lon, current_utc_time, current_utc_time - timedelta(hours=1), 1
@@ -539,30 +540,33 @@ def live_weather_map():
     map_df = pd.DataFrame(map_data)
     print(map_df)
     # Generate the map
-    import plotly.express as px
-    fig = px.scatter_mapbox(
-        map_df,
-        lat='lat',
-        lon='lon',
-        hover_name='city',
-        hover_data={
-            'temperature': True,
-            'humidity': True,
-            'precipitation': True
-        },
-        color='temperature',
-        size='humidity',
-        color_continuous_scale='Viridis',
-        title='Weather Data for 100 Cities (Last Hour)'
-    )
-    fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=2, mapbox_center={'lat': 20, 'lon': 0})
-    fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
-    
-    current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-    # Convert the map to HTML
-    map_html = fig.to_html(full_html=False)
-
-    return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
+    if(flag == 1):
+        import plotly.express as px
+        fig = px.scatter_mapbox(
+            map_df,
+            lat='lat',
+            lon='lon',
+            hover_name='city',
+            hover_data={
+                'temperature': True,
+                'humidity': True,
+                'precipitation': True
+            },
+            color='temperature',
+            size='humidity',
+            color_continuous_scale='Viridis',
+            title='Weather Data for 100 Cities (Last Hour)'
+        )
+        fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=2, mapbox_center={'lat': 20, 'lon': 0})
+        fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
+        
+        current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        # Convert the map to HTML
+        map_html = fig.to_html(full_html=False)
+        return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
+    else:
+        # Redirect back to the live_weather_map route
+        return redirect('/live_weather_map')
 
 @app.route('/about', methods=['GET'])
 def about():
