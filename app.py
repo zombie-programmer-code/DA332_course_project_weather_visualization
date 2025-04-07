@@ -381,6 +381,10 @@ def forecasts():
     # Logic for forecasts
     return "Forecasts Page (to be implemented)"
 
+@app.route('/Temperature_today')
+def today():
+    # Logic for temperature today
+    return render_template('Today.html')
 
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
