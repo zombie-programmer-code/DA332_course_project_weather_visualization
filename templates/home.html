@@ -55,6 +55,16 @@ Welcome to Weather Visualization!
                 </div>
             </div>
         </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+                <img src="{{ url_for('static', filename='country_live_weather_map.png') }}" class="card-img-top" alt="Live Weather by Country" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
+                    <p class="card-text" style="color: #005833;">Check real-time weather conditions for your country.</p>
+                    <a href="/country_weather" class="btn btn-primary" style="background: linear-gradient(45deg, #087eff, #087eff); border: none;">View Live Weather Map</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Features -->

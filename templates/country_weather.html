@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Country Weather
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h1 class="text-center">Weather Data by Country</h1>
+    <form method="POST" class="mt-4">
+        <div class="position-relative">
+            <label for="country" class="form-label">Enter Country Name</label>
+            <input type="text" class="form-control" id="country" name="country" placeholder="Enter country name" autocomplete="off">
+            <ul id="suggestions" class="list-group mt-2" style="position: absolute; z-index: 1000; width: 100%;"></ul>
+        </div>
+        <button type="submit" class="btn btn-primary">Get Weather</button>
+    </form>
+
+    {% if error %}
+    <div class="alert alert-danger mt-4" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+</div>
+
+<!-- jQuery and jQuery UI -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+
+<script>
+    const countryInput = document.getElementById('country');
+    const suggestionsList = document.getElementById('suggestions');
+
+    countryInput.addEventListener('input', function () {
+        const query = countryInput.value;
+
+        if (query.length > 0) {
+            fetch(`/autocomplete_countries?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous suggestions
+                    suggestionsList.innerHTML = '';
+
+                    // Add new suggestions
+                    data.forEach(country => {
+                        const li = document.createElement('li');
+                        li.textContent = country;
+                        li.classList.add('list-group-item');
+                        li.style.cursor = 'pointer';
+
+                        // Add click event to select the country
+                        li.addEventListener('click', function () {
+                            countryInput.value = country;
+                            suggestionsList.innerHTML = ''; // Clear suggestions
+                        });
+
+                        suggestionsList.appendChild(li);
+                    });
+                });
+        } else {
+            suggestionsList.innerHTML = ''; // Clear suggestions if input is empty
+        }
+    });
+</script>
+{% endblock %}

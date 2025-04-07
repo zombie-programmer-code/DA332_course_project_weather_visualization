@@ -44,6 +44,10 @@ city_names = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad",
                         "Panaji", "Shillong"]
 
 api_key = '126aff7cea9b454ca9c72738253103'
+world_cities = pd.read_csv('data/world_cities_lat_long.csv')
+
+# Extract unique country names
+countries = world_cities['country'].unique().tolist()
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great-circle distance between two points on the Earth using the Haversine formula.
@@ -251,68 +255,6 @@ def get_lat_lon(city):
         print(f"⚠ Error fetching data for {city}: {e}")
         return None, None
 
-def get_historical_weather(latitude, longitude, start_date, end_date):
-    """
-    Fetches historical daily weather data for a given location and date range.
-    Implements retry logic if the API rate limit is exceeded.
-    
-    Additional daily parameters include:
-      - daylight_duration (converted to HH:MM:SS)
-      - precipitation_hours
-      - windspeed_10m_max
-      - uv_index_max
-    """
-    base_url = "https://archive-api.open-meteo.com/v1/archive"
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "start_date": start_date,
-        "end_date": end_date,
-        # Added additional parameters to the daily endpoint
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset,daylight_duration,precipitation_hours,windspeed_10m_max,uv_index_max",
-        "timezone": "auto"
-    }
-    i = 0
-    while True:
-        try:
-            response = requests.get(base_url, params=params)
-            if response.status_code == 429:
-                print("Rate limit exceeded. Waiting 60 seconds before retrying...")
-                time.sleep(60)  # Wait before retrying
-                continue  # Retry the request
-            
-            response.raise_for_status()  # Raise exceptions for other errors
-            data = response.json()
-
-            # Format sunrise and sunset times to HH:MM:SS format
-            sunrise_times = [pd.to_datetime(t).strftime('%H:%M:%S') for t in data["daily"]["sunrise"]]
-            sunset_times = [pd.to_datetime(t).strftime('%H:%M:%S') for t in data["daily"]["sunset"]]
-            # Convert daylight duration from seconds to HH:MM:SS format
-            # Convert daylight duration from seconds to HH:MM:SS format
-            daylight_durations = [tm.strftime('%H:%M:%S', tm.gmtime(int(d))) for d in data["daily"]["daylight_duration"]]            
-            daily_df = pd.DataFrame({
-                "Date": pd.to_datetime(data["daily"]["time"]),
-                "Max Temperature (°C)": data["daily"]["temperature_2m_max"],
-                "Min Temperature (°C)": data["daily"]["temperature_2m_min"],
-                "Total Rainfall (mm)": data["daily"]["precipitation_sum"],
-                "Sunrise Time": sunrise_times,
-                "Sunset Time": sunset_times,
-                "Daylight Duration": daylight_durations,
-                "Precipitation Hours": data["daily"]["precipitation_hours"],
-                "Max Wind Speed (m/s)": data["daily"]["windspeed_10m_max"],
-                "Max UV Index": data["daily"]["uv_index_max"]
-            })
-
-            return daily_df  # Successfully fetched data, return DataFrame
-
-        except requests.exceptions.RequestException as e:
-            i = i + 1
-            print(f"Request failed: {e}. Retrying in 60 seconds...")
-            tm.sleep(60)  # Wait and retry
-            if i >= 2:
-                print("Failed to fetch data after multiple attempts.")
-                return None
-
 def populate_lat_long_table():
     if not hasattr(app, 'db_initialized'):
         app.db_initialized = True  # Set a flag to ensure this runs only once
@@ -352,8 +294,6 @@ def populate_lat_long_table():
                 """, city, lat, lon)
             except Exception as e:
                 print(f"Error processing {city}: {e}")
-
-    
 
 
 # Define the route for the homepage
@@ -567,6 +507,128 @@ def live_weather_map():
     else:
         # Redirect back to the live_weather_map route
         return redirect('/live_weather_map')
+
+@app.route('/autocomplete_countries', methods=['GET'])
+def autocomplete_countries():
+    # Get the query parameter
+    query = request.args.get('q', '').strip().lower()
+
+    # Filter country names that match the query
+    suggestions = [country for country in countries if country.lower().startswith(query)]
+
+    # Return the suggestions as a JSON response
+    return jsonify(suggestions)
+
+@app.route('/country_weather', methods=['GET', 'POST'])
+def country_weather():
+    if request.method == 'POST':
+        country = request.form['country'].strip()
+
+        # Load the world_cities_lat_long.csv file
+        world_cities = pd.read_csv('data/world_cities_lat_long.csv')
+
+        # Filter cities for the given country
+        country_cities = world_cities[world_cities['country'].str.lower() == country.lower()]
+
+        if country_cities.empty:
+            return render_template('country_weather.html', error=f"No cities found for the country: {country}")
+
+        # Limit to a maximum of 10 cities
+        country_cities = country_cities.head(10)
+
+        # Prepare data for the map
+        map_data = []
+        current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+        for _, row in country_cities.iterrows():
+            city = row['city']
+            lat = row['latitude']
+            lon = row['longitude']
+
+            # Check if data is already in the database
+            existing_data = db1.execute(
+                "SELECT * FROM weather_map_data WHERE city = ? AND utc_time = ?",
+                city, current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
+            )
+
+            if existing_data:
+                # Use existing data
+                map_data.append({
+                    'city': city,
+                    'lat': lat,
+                    'lon': lon,
+                    'temperature': existing_data[0]['temperature'],
+                    'humidity': existing_data[0]['humidity'],
+                    'precipitation': existing_data[0]['precipitation'],
+                    'local_time': convert_utc_to_local(current_utc_time, lat, lon).strftime('%Y-%m-%d %H:%M:%S')
+                })
+            else:
+                # Fetch weather data from the API
+                weather_data = get_historical_hourly_weather(
+                    api_key_weather, lat, lon, current_utc_time, current_utc_time - timedelta(hours=1), 1
+                )
+
+                if not weather_data.empty:
+                    # Extract the first row of weather data
+                    weather_row = weather_data.iloc[0]
+                    temperature = weather_row['Temperature (°C)']
+                    humidity = weather_row['Humidity (%)']
+                    humidity = float(weather_row['Humidity (%)'])  
+                    precipitation = weather_row['Precipitation (mm)']
+
+                    # Convert UTC time to local time for the city
+                    local_time = convert_utc_to_local(current_utc_time, lat, lon)
+
+                    # Store the data in the database
+                    db1.execute("""
+                        INSERT INTO weather_map_data (
+                            city, latitude, longitude, temperature, humidity, precipitation, utc_time
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
+
+                    # Add the data to the map
+                    map_data.append({
+                        'city': city,
+                        'lat': lat,
+                        'lon': lon,
+                        'temperature': temperature,
+                        'humidity': humidity,
+                        'precipitation': precipitation,
+                        'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S')
+                    })
+
+        # Convert to DataFrame
+        map_df = pd.DataFrame(map_data)
+
+        # Generate the map
+        import plotly.express as px
+        fig = px.scatter_mapbox(
+            map_df,
+            lat='lat',
+            lon='lon',
+            hover_name='city',
+            hover_data={
+                'temperature': True,
+                'humidity': True,
+                'precipitation': True,
+                'local_time': True  # Add local time to hover data
+            },
+            color='temperature',
+            size='humidity',
+            color_continuous_scale='Viridis',
+            title=f"Weather Data for Cities in {country}"
+        )
+        fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': map_df['lat'].mean(), 'lon': map_df['lon'].mean()})
+        fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
+
+        # Convert the map to HTML
+        map_html = fig.to_html(full_html=False)
+
+        return render_template('country_weather_map.html', map_html=map_html, country=country, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
+    # Render the input form
+    return render_template('country_weather.html')
+
+
 
 @app.route('/about', methods=['GET'])
 def about():

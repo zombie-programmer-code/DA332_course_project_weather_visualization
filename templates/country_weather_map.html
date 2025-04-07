@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Weather Map for {{ country }}
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h1 class="text-center">Weather Map for {{ country }}</h1>
+    <p class="text-center text-muted">Last updated: {{ last_updated }} UTC</p>
+    <div class="mt-4">
+        {{ map_html|safe }}
+    </div>
+</div>
+{% endblock %}
