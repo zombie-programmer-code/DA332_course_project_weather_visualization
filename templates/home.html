@@ -65,6 +65,16 @@ Welcome to Weather Visualization!
                 </div>
             </div>
         </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+                <img src="{{ url_for('static', filename='india_temp_map.png') }}" class="card-img-top" alt="Temperature_today" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Countrywide Weather</h5>
+                    <p class="card-text" style="color: #005833;">Take a look at the Today's nationwide temperature map.</p>
+                    <a href="/Temperature_today" class="btn btn-primary" style="background: linear-gradient(45deg, #067f00, #067f00); border: none;">View Today's temperature Map</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Features -->
