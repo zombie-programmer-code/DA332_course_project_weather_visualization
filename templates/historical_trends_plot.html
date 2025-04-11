@@ -27,7 +27,27 @@ Historical Weather Trends
             {{ box_plot_html|safe }}
         </div>
     </div>
-
+    <!-- Max Temp Plot Section -->
+    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Maximum Temperatures by region</h2>
+        <div style="overflow-x: auto;">
+            {{ max_plot_html|safe }}
+        </div>
+    </div>
+    <!-- Min Temp Plot Section -->
+    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Minimum Temperatures by region</h2>
+        <div style="overflow-x: auto;">
+            {{ min_plot_html|safe }}
+        </div>
+    </div>
+    <!-- Rainfall Plot Section -->
+    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Rainfall by region</h2>
+        <div style="overflow-x: auto;">
+            {{ rain_plot_html|safe }}
+        </div>
+    </div>
     <!-- Back Button -->
     <div class="text-center">
         <a href="/historical_trends" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;" 
