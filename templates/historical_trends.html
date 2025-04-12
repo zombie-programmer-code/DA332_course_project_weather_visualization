@@ -30,11 +30,21 @@ Historical Weather Trends
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="line_from_year" class="form-label" style="font-weight: bold; color: #34495e;">From Year</label>
-                <input type="number" class="form-control" id="line_from_year" name="line_from_year" placeholder="Enter starting year (e.g., 2015)" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
+                <select class="form-select" id="line_from_year" name="line_from_year" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
+                    <option value="" disabled selected>Select starting year</option>
+                    {% for year in range(2015, 2025) %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-6">
                 <label for="line_to_year" class="form-label" style="font-weight: bold; color: #34495e;">To Year</label>
-                <input type="number" class="form-control" id="line_to_year" name="line_to_year" placeholder="Enter ending year (e.g., 2020)" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
+                <select class="form-select" id="line_to_year" name="line_to_year" required style="border-radius: 5px; border: 1px solid #ddd; padding: 10px;">
+                    <option value="" disabled selected>Select ending year</option>
+                    {% for year in range(2015, 2025) %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
         <div class="row mb-3">
