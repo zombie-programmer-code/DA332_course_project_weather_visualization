@@ -5,14 +5,17 @@ Welcome to Weather Visualization!
 {% endblock %}
 
 {% block main %}
+
 <div class="container mt-4">
+    <!-- <div class="animated-background"></div> -->
+
     <h1 class="mb-4 text-center" style="font-family: 'Arial', sans-serif; font-weight: bold; color: #2c3e50; text-transform: uppercase; letter-spacing: 2px;">
         Discover the World of Weather Visualization
     </h1>
     <p class="text-center" style="font-size: 1.2rem; color: #7f8c8d;">
         Dive into weather trends, forecasts, and live updates for your favorite locations.
     </p>
-
+    
     <!-- Call to Action -->
     <div class="row mb-4 justify-content-center">
         <div class="col-md-6 col-lg-4">
@@ -111,6 +114,40 @@ Welcome to Weather Visualization!
 <!-- Add Custom CSS for Enhanced Interactivity -->
 <style>
     /* Card Hover Effects */
+    .animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: linear-gradient(45deg, #e0f7fa, #b2ebf2, #80deea, #4dd0e1, #26c6da, #00bcd4);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+/* @keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.sky-container {
+  z-index: 1;
+  position: relative;
+}
+
+.interactive-card {
+  z-index: 2;
+}
+/*  */
+
+
     .interactive-card {
         margin: 15px;
         transform: scale(0.95);
@@ -157,4 +194,24 @@ Welcome to Weather Visualization!
         padding: 15px;
     }
 </style>
+
+<script>
+    document.addEventListener('mousemove', function(e) {
+      const cards = document.querySelectorAll('.interactive-card');
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+    
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const cardX = rect.left + rect.width / 2;
+        const cardY = rect.top + rect.height / 2;
+    
+        const angleX = (mouseY - cardY) / 30;
+        const angleY = (cardX - mouseX) / 30;
+    
+        card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(0.95)`;
+      });
+    });
+    </script>
+    
 {% endblock %}
