@@ -304,9 +304,22 @@ def populate_lat_long_table():
 def index():
     return render_template('home.html')
 
+@app.route('/check_status')
+def check_status():
+    page = request.args.get('page', '')
+    # Check if the page is ready in the session
+    is_ready = session.get(f'{page}_ready', False)
+    return jsonify({'ready': is_ready})
+
 @app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
     if request.method == 'POST':
+        if request.args.get('loading') != 'complete':
+        # Set the page as not ready
+            session['/historical_trends_ready'] = False
+        # Redirect to suspense page
+            return render_template('suspense.html', destination='/historical_trends?loading=complete')
+    
         # Line plot inputs
         line_cities = request.form.getlist('line_cities')
         line_from_year = int(request.form['line_from_year'])
@@ -377,10 +390,17 @@ def historical_trends():
         
 
     # Render the form if the request method is GET
+    session['/historical_trends_ready'] = True
     return render_template('historical_trends.html', city_names=city_names)
 
 @app.route('/view_pre_generated_statistics', methods=['GET'])
 def view_pre_generated_statistics():
+    if request.args.get('loading') != 'complete':
+        # Set the page as not ready
+            session['/view_pre_generated_statistics_ready'] = False
+        # Redirect to suspense page
+            return render_template('suspense.html', destination='/view_pre_generated_statistics?loading=complete')
+    
     region_month_stats = pd.read_csv('data/region_month_stats.csv')
 
     # Map numeric months to month names
@@ -438,6 +458,7 @@ def view_pre_generated_statistics():
     rain_fig.update_yaxes(title_text=None)
     rain_fig.update_layout(height=600)
     rain_plot_html = rain_fig.to_html(full_html=False)
+    session['/view_pre_generated_statistics_ready'] = True
 
     # Render the template with the plots
     return render_template(
@@ -471,12 +492,7 @@ def autocomplete():
     # Return the suggestions as a JSON response
     return jsonify(list(suggestions))
 
-@app.route('/check_status')
-def check_status():
-    page = request.args.get('page', '')
-    # Check if the page is ready in the session
-    is_ready = session.get(f'{page}_ready', False)
-    return jsonify({'ready': is_ready})
+
 
 @app.route('/live_weather_map', methods=['GET'])
 def live_weather_map():

@@ -107,44 +107,226 @@
     </main>
 
     <!-- Footer -->
-    <footer class="text-center text-white py-4" style="background: #2c3e50;">
+    <footer class="footer-section py-5">
       <div class="container">
-        <div class="row">
+        <div class="row g-4">
+          <!-- About Section -->
           <div class="col-md-4">
-            <h5>About</h5>
-            <p>
-              Weather Vista provides real-time and historical weather data for cities worldwide.
-            </p>
+            <div class="footer-widget">
+              <h5 class="footer-title">About Weather Vista</h5>
+              <div class="footer-line mb-3"></div>
+              <p class="footer-text">
+                Weather Vista provides comprehensive real-time and historical weather data for cities worldwide, helping you plan better with accurate forecasts and climate insights.
+              </p>
+            </div>
           </div>
+          
+          <!-- Quick Links Section -->
           <div class="col-md-4">
-            <h5>Quick Links</h5>
-            <ul class="list-unstyled">
-              <li>
-                <a href="/" class="text-white text-decoration-none">Home</a>
-              </li>
-              <li>
-                <a href="/about" class="text-white text-decoration-none">About</a>
-              </li>
-      
-            </ul>
+            <div class="footer-widget">
+              <h5 class="footer-title">Quick Links</h5>
+              <div class="footer-line mb-3"></div>
+              <ul class="footer-links list-unstyled">
+                <li class="footer-link-item">
+                  <i class="bi bi-house-door me-2"></i>
+                  <a href="/" class="footer-link">Home</a>
+                </li>
+                <li class="footer-link-item">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <a href="/about" class="footer-link">About</a>
+                </li>
+                
+              </ul>
+            </div>
           </div>
+          
+          <!-- Social Media Section -->
           <div class="col-md-4">
-            <h5>Follow Us</h5>
-            <a href="#" class="text-white me-3">
-              <i class="bi bi-facebook"></i>
-            </a>
-            <a href="#" class="text-white me-3">
-              <i class="bi bi-twitter"></i>
-            </a>
-            <a href="#" class="text-white">
-              <i class="bi bi-instagram"></i>
-            </a>
+            <div class="footer-widget">
+              <h5 class="footer-title">Follow Us</h5>
+              <div class="footer-line mb-3"></div>
+              <p class="footer-text mb-3">Stay connected with us on social media for weather updates and tips.</p>
+              <div class="social-icons">
+                <!-- <a href="#" class="social-icon" aria-label="Facebook">
+                  <i class="bi bi-facebook"></i>
+                </a>
+                <a href="#" class="social-icon" aria-label="Twitter">
+                  <i class="bi bi-twitter"></i>
+                </a>
+                <a href="#" class="social-icon" aria-label="Instagram">
+                  <i class="bi bi-instagram"></i>
+                </a> -->
+                <a href="https://www.linkedin.com/in/ishangupta2307?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" class="social-icon" aria-label="Team LinkedIn">
+                  <img src="../static/1.png" alt="Ishan Gupta" class="profile-thumbnail">
+                  <i class="bi bi-linkedin"></i>
+                </a>
+                
+                <a href="https://www.linkedin.com/in/saptarshi-mukherjee-438a0524b/" class="social-icon" aria-label="Team LinkedIn">
+                  <img src="../static/2.png" alt="Saptarshi Mukherjee" class="profile-thumbnail">
+                  <i class="bi bi-linkedin"></i>
+                </a>
+                
+                <a href="https://www.linkedin.com/in/soumya-savarn-3483b2165/?originalSubdomain=in" class="social-icon" aria-label="Team LinkedIn">
+                  <img src="../static/3.png" alt="Soumya Savarn" class="profile-thumbnail">
+                  <i class="bi bi-linkedin"></i>
+                </a>
+                
+              </div>
+            </div>
           </div>
         </div>
-        <hr class="bg-white" />
-        <small>© 2025 Weather Vista. All rights reserved.</small>
+        
+        <!-- Divider -->
+        <div class="footer-divider my-4"></div>
+        
+        <!-- Copyright Section -->
+        <div class="row">
+          <div class="col-md-6">
+            <p class="copyright-text">
+              © 2025 Weather Vista. All rights reserved.
+            </p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <p class="footer-text small">
+              <a href="#" class="footer-link small">Privacy Policy</a> • 
+              <a href="#" class="footer-link small">Terms of Service</a>
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
+    
+    <style>
+      /* Footer Styling */
+      .footer-section {
+        background: linear-gradient(to right, #1c2e4a, #2c3e50, #1c2e4a);
+        color: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .footer-widget {
+        padding: 0 10px;
+      }
+      
+      .footer-title {
+        color: white;
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.5px;
+      }
+      .profile-thumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 5px;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  background: #3498db;
+  transform: translateY(-3px);
+}
+
+      .footer-line {
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(to right, #3498db, #2ecc71);
+        border-radius: 3px;
+      }
+      
+      .footer-text {
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.6;
+      }
+      
+      .footer-links {
+        padding-left: 0;
+      }
+      
+      .footer-link-item {
+        margin-bottom: 10px;
+        transition: transform 0.3s ease;
+      }
+      
+      .footer-link-item:hover {
+        transform: translateX(5px);
+      }
+      
+      .footer-link {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+      
+      .footer-link:hover {
+        color: #3498db;
+        text-decoration: none;
+      }
+      
+      .social-icons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      
+      .social-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transition: all 0.3s ease;
+      }
+      
+      .social-icon:hover {
+        background: #3498db;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+      }
+      
+      .footer-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+      }
+      
+      .copyright-text {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 767px) {
+        .footer-widget {
+          text-align: center;
+        }
+        
+        .footer-line {
+          margin: 0 auto 1rem;
+        }
+        
+        .social-icons {
+          justify-content: center;
+        }
+      }
+    </style>
+    
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
