@@ -21,7 +21,7 @@ Welcome to Weather Visualization!
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Historical Trends</h5>
                     <p class="card-text" style="color: #7f8c8d;">Analyze past weather data to uncover trends and patterns.</p>
-                    <a href="/historical_trends" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #3498db, #2980b9); border: none;">View Trends</a>
+                    <a href="/historical_trends" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #9fd4f8, #2980b9); border: none;">View Trends</a>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@ Welcome to Weather Visualization!
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Historical Statistics</h5>
                     <p class="card-text" style="color: #7f8c8d;">Look at some region-wise statistics, aggregated over the last 10 years.</p>
-                    <a href="/view_pre_generated_statistics" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #34f8db, #29f0b9); border: none;">View Trends</a>
+                    <a href="/view_pre_generated_statistics" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #b2fbf0, #017c59); border: none;">View Trends</a>
                 </div>
             </div>
         </div>
@@ -41,7 +41,7 @@ Welcome to Weather Visualization!
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Weather Forecasts</h5>
                     <p class="card-text" style="color: #7f8c8d;">Get accurate weather forecasts for the days ahead.</p>
-                    <a href="/forecasts" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #e67e22, #d35400); border: none;">View Forecasts</a>
+                    <a href="/forecasts" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #f4d3b7, #d35400); border: none;">View Forecasts</a>
                 </div>
             </div>
         </div>
@@ -51,7 +51,7 @@ Welcome to Weather Visualization!
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
                     <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions for your city.</p>
-                    <a href="/live_weather" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); border: none;">View Live Weather</a>
+                    <a href="/live_weather" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #e2fcac, #27ae60); border: none;">View Live Weather</a>
                 </div>
             </div>
         </div>
@@ -61,7 +61,7 @@ Welcome to Weather Visualization!
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
                     <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions around the world.</p>
-                    <a href="/live_weather_map" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #e67e22, #d35400); border: none;">View Live Weather Map</a>
+                    <a href="/live_weather_map" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #f5c193, #d35400); border: none;">View Live Weather Map</a>
                 </div>
             </div>
         </div>
@@ -71,7 +71,7 @@ Welcome to Weather Visualization!
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
                     <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions for your country.</p>
-                    <a href="/country_weather" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #087eff, #087eff); border: none;">View Live Weather Map</a>
+                    <a href="/country_weather" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #b5f4f7, #087eff); border: none;">View Live Weather Map</a>
                 </div>
             </div>
         </div>
@@ -88,7 +88,7 @@ Welcome to Weather Visualization!
     </div>
 
     <!-- Features -->
-    <div class="row text-center justify-content-center">
+    <!-- <div class="row text-center justify-content-center">
         <div class="col-md-6 col-lg-4 mb-3">
             <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <div class="card-body">
@@ -105,14 +105,20 @@ Welcome to Weather Visualization!
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <!-- Add Custom CSS for Enhanced Interactivity -->
 <style>
     /* Card Hover Effects */
+    .interactive-card {
+        margin: 15px;
+        transform: scale(0.95);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    
     .interactive-card:hover {
-        transform: scale(1.08);
+        transform: scale(1.02);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
 
@@ -121,7 +127,7 @@ Welcome to Weather Visualization!
     }
 
     .interactive-card:hover img {
-        transform: scale(1.15);
+        transform: scale(1.1);
         filter: brightness(0.9);
     }
 
@@ -138,6 +144,17 @@ Welcome to Weather Visualization!
     /* Smooth Transition for All Elements */
     .interactive-card, .interactive-btn {
         transition: all 0.3s ease-in-out;
+    }
+    
+    /* Add additional spacing to the row */
+    .row {
+        margin-left: -20px;
+        margin-right: -20px;
+    }
+    
+    /* Adjust column padding for better spacing */
+    .col-md-6, .col-lg-4 {
+        padding: 15px;
     }
 </style>
 {% endblock %}
