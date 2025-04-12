@@ -22,6 +22,42 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 
     <title>Weather Visualization: {% block title %}{% endblock %}</title>
+    <style>
+        /* Navbar Background Transition */
+        .navbar {
+            transition: background 0.3s ease;
+        }
+        .navbar:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Navbar Link Hover Effects */
+        .navbar .nav-link {
+            transition: color 0.3s ease, transform 0.2s ease;
+            color: #ffffff !important; /* default color */
+        }
+        .navbar .nav-link:hover {
+            color: #1abc9c !important;
+            transform: translateY(-2px);
+        }
+        
+        /* Navbar Brand Effects */
+        .navbar-brand {
+            transition: transform 0.2s ease;
+        }
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Navbar Button Hover Effects */
+        .navbar .btn {
+            transition: transform 0.2s ease, background 0.3s ease;
+        }
+        .navbar .btn:hover {
+            transform: scale(1.05);
+            background: linear-gradient(45deg, #f6f7f7, #faf445);
+        }
+    </style>
   </head>
 
   <body>
@@ -49,30 +85,31 @@
         <div class="collapse navbar-collapse" id="navbar">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link text-white" href="/">Home</a>
+              <a class="btn btn-outline-light ml-3" href="/">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/historical_trends">Historical Trends</a>
+              <a class="btn btn-outline-light ml-3" href="/historical_trends">Historical Trends</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/forecasts">Forecasts</a>
+              <a class="btn btn-outline-light ml-3" href="/forecasts">Forecasts</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/live_weather">Live Weather</a>
+              <a class="btn btn-outline-light ml-3" href="/live_weather">Live Weather</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/live_weather_map">Live Weather Map</a>
+              <a class="btn btn-outline-light ml-3" href="/live_weather_map">Live Weather Map</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/country_weather">Live Weather Map by Country</a>
+              <a class="btn btn-outline-light ml-3" href="/country_weather">Live Weather Map by Country</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/Temperature_today">Today's temperature</a>
+              <a class="btn btn-outline-light ml-3" href="/Temperature_today">Today's temperature</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="/about">About</a>
+              <a class="btn btn-outline-light ml-3" href="/about">About</a>
             </li>
           </ul>
+          <a href="/contact" class="btn btn-outline-light ml-3">Contact Us</a>
         </div>
       </div>
     </nav>
@@ -132,5 +169,8 @@
         <small>© 2025 Weather Visualization. All rights reserved.</small>
       </div>
     </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </body>
 </html>
