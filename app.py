@@ -2,7 +2,7 @@ import os
 import csv
 from datetime import datetime, time, timedelta
 from cs50 import SQL
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect,session
 import pandas as pd
 import plotly.express as px
 import requests
@@ -31,6 +31,9 @@ import tensorflow as tf
 from timezonefinder import TimezoneFinder
 import pytz
 app = Flask(__name__)
+import secrets
+app.secret_key = secrets.token_hex(16)
+
 db = SQL("sqlite:///weather.db")
 db1 = SQL("sqlite:///live_weather_map.db")
 db2 = SQL("sqlite:///city_lat_long.db")
@@ -468,8 +471,20 @@ def autocomplete():
     # Return the suggestions as a JSON response
     return jsonify(list(suggestions))
 
+@app.route('/check_status')
+def check_status():
+    page = request.args.get('page', '')
+    # Check if the page is ready in the session
+    is_ready = session.get(f'{page}_ready', False)
+    return jsonify({'ready': is_ready})
+
 @app.route('/live_weather_map', methods=['GET'])
 def live_weather_map():
+    if request.args.get('loading') != 'complete':
+        # Set the page as not ready
+        session['/live_weather_map_ready'] = False
+        # Redirect to suspense page
+        return render_template('suspense.html', destination='/live_weather_map?loading=complete')
     # Create the weather_map_data table if it doesn't exist
     db1.execute("""
         CREATE TABLE IF NOT EXISTS weather_map_data (
@@ -575,10 +590,12 @@ def live_weather_map():
         current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         # Convert the map to HTML
         map_html = fig.to_html(full_html=False)
+        session['/live_weather_map_ready'] = True
         return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
     else:
         # Redirect back to the live_weather_map route
-        return redirect('/live_weather_map')
+        session['/live_weather_map_ready'] = True
+        return redirect('/live_weather_map.html')
 
 @app.route('/autocomplete_countries', methods=['GET'])
 def autocomplete_countries():

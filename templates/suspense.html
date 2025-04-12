@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Loading...
+{% endblock %}
+
+{% block main %}
+<div class="container text-center mt-5">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only"></span>
+    </div>
+    <h2 class="mt-3">Loading Weather Data</h2>
+    <p class="text-muted">Please wait while we fetch the latest weather information...</p>
+    <div class="progress mt-4">
+        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+    </div>
+</div>
+
+<script>
+    // Simulate progress
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 5;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            // Check if the destination page is ready
+            checkIfReady();
+        }
+    }, 300);
+    
+    // Function to check if the main page is ready
+    function checkIfReady() {
+        fetch('/check_status?page={{ destination }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.ready) {
+                    window.location.href = '{{ destination }}';
+                } else {
+                    // Try again in 1 second
+                    setTimeout(checkIfReady, 1000);
+                }
+            });
+    }
+</script>
+{% endblock %}
