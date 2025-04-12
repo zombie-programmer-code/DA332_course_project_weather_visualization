@@ -1,0 +1,230 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Loading...
+{% endblock %}
+
+{% block main %}
+<div class="container text-center mt-5">
+    <div class="weather-animation">
+        <div class="cloud">
+            <div class="sun"></div>
+            <div class="rain"></div>
+        </div>
+    </div>
+    
+    <h2 class="mt-3">Fetching Your Weather</h2>
+    <p id="loading-message" class="text-muted">Looking up at the sky for you...</p>
+    
+    <div class="progress mt-4 rounded-pill" style="height: 20px;">
+        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%"></div>
+    </div>
+    
+    <div class="mt-3 fun-facts">
+        <p id="weather-fact" class="text-muted fst-italic">Did you know? A single cloud can weigh more than a million pounds!</p>
+    </div>
+</div>
+
+<style>
+    .weather-animation {
+        height: 120px;
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .cloud {
+        width: 100px;
+        height: 60px;
+        background: #f2f9fe;
+        border-radius: 50px;
+        position: relative;
+        margin: 0 auto;
+        box-shadow: 0 8px 5px rgba(0, 0, 0, 0.1);
+        animation: float 5s infinite ease-in-out;
+    }
+    
+    .cloud:before, .cloud:after {
+        content: '';
+        background: #f2f9fe;
+        position: absolute;
+    }
+    
+    .cloud:before {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        top: -20px;
+        left: 15px;
+    }
+    
+    .cloud:after {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        top: -30px;
+        right: 15px;
+    }
+    
+    .sun {
+        width: 40px;
+        height: 40px;
+        background: #FFD700;
+        border-radius: 50%;
+        position: absolute;
+        top: -50px;
+        left: -20px;
+        box-shadow: 0 0 20px #FFD700;
+        animation: pulse 3s infinite;
+        z-index: -1;
+    }
+    
+    .rain {
+        position: absolute;
+        bottom: -20px;
+        left: 30px;
+        display: none;
+    }
+    
+    .rain:before {
+        content: '';
+        position: absolute;
+        width: 3px;
+        height: 10px;
+        background: #64b5f6;
+        border-radius: 2px;
+    }
+    
+    .rain:after {
+        content: '';
+        position: absolute;
+        width: 3px;
+        height: 10px;
+        background: #64b5f6;
+        border-radius: 2px;
+        left: 15px;
+        top: 5px;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .progress {
+        background-color: #e9f5f9;
+        overflow: hidden;
+    }
+    
+    .fun-facts {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+</style>
+
+<script>
+    // Array of loading messages
+    const loadingMessages = [
+        "Looking up at the sky for you...",
+        "Checking if it's umbrella weather...",
+        "Counting the clouds...",
+        "Measuring the raindrops...",
+        "Calculating the sunshine factor...",
+        "Consulting with the weather spirits...",
+        "Almost there! Just a few more clouds to count..."
+    ];
+    
+    // Array of weather facts
+    const weatherFacts = [
+        "Did you know? A single cloud can weigh more than a million pounds!",
+        "Lightning strikes the Earth about 8.6 million times per day!",
+        "The fastest recorded raindrop fell at 18 mph!",
+        "Wind doesn't make a sound until it blows against an object!",
+        "Snowflakes can take up to 2 hours to reach the ground!",
+        "The coldest temperature ever recorded on Earth was -128.6°F in Antarctica!",
+        "A rainbow is actually a complete circle, but we usually only see the arc!"
+    ];
+    
+    let progress = 0;
+    let messageIndex = 0;
+    let factIndex = 0;
+    
+    // Change message every few seconds
+    setInterval(() => {
+        messageIndex = (messageIndex + 1) % loadingMessages.length;
+        document.getElementById('loading-message').innerText = loadingMessages[messageIndex];
+        
+        // Add a little bounce animation when message changes
+        document.getElementById('loading-message').classList.add('animate__animated', 'animate__bounce');
+        setTimeout(() => {
+            document.getElementById('loading-message').classList.remove('animate__animated', 'animate__bounce');
+        }, 1000);
+    }, 3000);
+    
+    // Change fact every few seconds
+    setInterval(() => {
+        factIndex = (factIndex + 1) % weatherFacts.length;
+        const factElement = document.getElementById('weather-fact');
+        
+        // Fade out
+        factElement.style.opacity = 0;
+        
+        // Change text and fade in after a short delay
+        setTimeout(() => {
+            factElement.innerText = weatherFacts[factIndex];
+            factElement.style.opacity = 1;
+        }, 500);
+    }, 5000);
+    
+    // Simulate progress
+    const interval = setInterval(() => {
+        progress += 25;
+        const progressBar = document.getElementById('progress-bar');
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress);
+        
+        // Change color as progress increases
+        if (progress > 75) {
+            progressBar.classList.remove('bg-info');
+            progressBar.classList.add('bg-success');
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            // Check if the destination page is ready
+            checkIfReady();
+        }
+    }, 200);
+    
+    // Function to check if the main page is ready
+    function checkIfReady() {
+        fetch('/check_status?page={{ destination }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.ready) {
+                    console.log("PAGE READY !!!");
+                    
+                    // Add a completion animation before redirecting
+                    document.querySelector('.cloud').style.transform = 'scale(1.2)';
+                    document.getElementById('loading-message').innerText = "Weather data ready! Taking you there...";
+                    
+                    setTimeout(() => {
+                        window.location.href = '{{ destination }}';
+                    }, 1000);
+                } else {
+                    // Try again in 1 second
+                    console.log("PAGE NOT READY !!!");
+                    setTimeout(checkIfReady, 1000);
+                }
+            })
+            .catch(error => {
+                console.error("Error checking status:", error);
+                setTimeout(checkIfReady, 2000);
+            });
+    }
+</script>
+{% endblock %}
