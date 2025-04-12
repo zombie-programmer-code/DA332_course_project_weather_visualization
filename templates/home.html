@@ -9,12 +9,41 @@ Welcome to Weather Visualization!
 <div class="container mt-4">
     <!-- <div class="animated-background"></div> -->
 
-    <h1 class="mb-4 text-center" style="font-family: 'Arial', sans-serif; font-weight: bold; color: #2c3e50; text-transform: uppercase; letter-spacing: 2px;">
-        Discover the World of Weather Visualization
+    <h1 class="mb-4 text-center animated-text" style="font-family: 'Poppins', sans-serif; font-weight: 700; color: #02a2b3; text-transform: uppercase; letter-spacing: 3px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">
+        Discover the World of Weather Visualization !
     </h1>
-    <p class="text-center" style="font-size: 1.2rem; color: #7f8c8d;">
+    <!-- <p class="text-center animated-text" style="font-size: 1.3rem; color: #7f8c8d; font-style: italic; line-height: 1.6; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);"></p>
         Dive into weather trends, forecasts, and live updates for your favorite locations.
-    </p>
+    </p> -->
+
+    <style>
+        .animated-text {
+            animation: fadeInUp 2s cubic-bezier(0.25, 1, 0.5, 1), colorChange 5s infinite alternate;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes colorChange {
+            0% {
+                color: #02a2b3;
+            }
+            50% {
+                color: #16a085;
+            }
+            100% {
+                color: #2980b9;
+            }
+        }
+    </style>
     
     <!-- Call to Action -->
     <div class="row mb-4 justify-content-center">
