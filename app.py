@@ -33,7 +33,6 @@ import pytz
 app = Flask(__name__)
 import secrets
 app.secret_key = secrets.token_hex(16)
-
 db = SQL("sqlite:///weather.db")
 db1 = SQL("sqlite:///live_weather_map.db")
 db2 = SQL("sqlite:///city_lat_long.db")
@@ -57,7 +56,7 @@ def haversine(lat1, lon1, lat2, lon2):
     """
     R = 6371  # Radius of the Earth in kilometers
     dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
+    dlon = radians(lat2 - lon1)
     a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
@@ -304,22 +303,20 @@ def populate_lat_long_table():
 def index():
     return render_template('home.html')
 
+
 @app.route('/check_status')
 def check_status():
     page = request.args.get('page', '')
     # Check if the page is ready in the session
-    is_ready = session.get(f'{page}_ready', False)
+    is_ready = session.get(f'{page}_ready', True)
     return jsonify({'ready': is_ready})
-
+    
 @app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
-    if request.method == 'POST':
-        if request.args.get('loading') != 'complete':
-        # Set the page as not ready
-            session['/historical_trends_ready'] = False
-        # Redirect to suspense page
-            return render_template('suspense.html', destination='/historical_trends?loading=complete')
+     
     
+    if request.method == 'POST':
+        
         # Line plot inputs
         line_cities = request.form.getlist('line_cities')
         line_from_year = int(request.form['line_from_year'])
@@ -390,19 +387,18 @@ def historical_trends():
         
 
     # Render the form if the request method is GET
-    session['/historical_trends_ready'] = True
     return render_template('historical_trends.html', city_names=city_names)
 
 @app.route('/view_pre_generated_statistics', methods=['GET'])
 def view_pre_generated_statistics():
+    # If the loading flag is not complete, render the suspense page.
     if request.args.get('loading') != 'complete':
-        # Set the page as not ready
-            session['/view_pre_generated_statistics_ready'] = False
-        # Redirect to suspense page
-            return render_template('suspense.html', destination='/view_pre_generated_statistics?loading=complete')
+        return render_template('suspense_fast.html', destination='view_pre_generated_statistics')
     
+    # Otherwise (loading is complete), continue to build the plots.
     region_month_stats = pd.read_csv('data/region_month_stats.csv')
-
+    print("work in progress")
+    
     # Map numeric months to month names
     month_mapping = {
         1: "January", 2: "February", 3: "March", 4: "April",
@@ -458,9 +454,8 @@ def view_pre_generated_statistics():
     rain_fig.update_yaxes(title_text=None)
     rain_fig.update_layout(height=600)
     rain_plot_html = rain_fig.to_html(full_html=False)
-    session['/view_pre_generated_statistics_ready'] = True
 
-    # Render the template with the plots
+    # Render the final template with the plots.
     return render_template(
         'historical_statistics.html',
         max_plot_html=max_plot_html,
@@ -476,6 +471,8 @@ def forecasts():
 @app.route('/Temperature_today')
 def today():
     # Logic for temperature today
+    if request.args.get('loading') != 'complete':
+        return render_template('suspense_fast.html', destination='Temperature_today')
     return render_template('Today.html')
 
 @app.route('/autocomplete', methods=['GET'])
@@ -492,15 +489,8 @@ def autocomplete():
     # Return the suggestions as a JSON response
     return jsonify(list(suggestions))
 
-
-
 @app.route('/live_weather_map', methods=['GET'])
 def live_weather_map():
-    if request.args.get('loading') != 'complete':
-        # Set the page as not ready
-        session['/live_weather_map_ready'] = False
-        # Redirect to suspense page
-        return render_template('suspense.html', destination='/live_weather_map?loading=complete')
     # Create the weather_map_data table if it doesn't exist
     db1.execute("""
         CREATE TABLE IF NOT EXISTS weather_map_data (
@@ -606,12 +596,10 @@ def live_weather_map():
         current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         # Convert the map to HTML
         map_html = fig.to_html(full_html=False)
-        session['/live_weather_map_ready'] = True
         return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
     else:
         # Redirect back to the live_weather_map route
-        session['/live_weather_map_ready'] = True
-        return redirect('/live_weather_map.html')
+        return redirect('/live_weather_map')
 
 @app.route('/autocomplete_countries', methods=['GET'])
 def autocomplete_countries():

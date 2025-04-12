@@ -213,8 +213,9 @@ Loading...
                     document.getElementById('loading-message').innerText = "Weather data ready! Taking you there...";
                     
                     setTimeout(() => {
-                        window.location.href = '{{ destination }}';
-                    }, 1000);
+                        console.log("Redirecting to: {{ destination }}");
+                        window.location.href = '{{ destination }}?loading=complete';
+                    }, 1500);
                 } else {
                     // Try again in 1 second
                     console.log("PAGE NOT READY !!!");

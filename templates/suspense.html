@@ -213,7 +213,7 @@ Loading...
                     document.getElementById('loading-message').innerText = "Weather data ready! Taking you there...";
                     
                     setTimeout(() => {
-                        window.location.href = '{{ destination }}';
+                        window.location.href = '{{ destination }}?loading=complete';
                     }, 1000);
                 } else {
                     // Try again in 1 second
