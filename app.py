@@ -56,7 +56,7 @@ def haversine(lat1, lon1, lat2, lon2):
     """
     R = 6371  # Radius of the Earth in kilometers
     dlat = radians(lat2 - lat1)
-    dlon = radians(lat2 - lon1)
+    dlon = radians(lon2 - lon1)
     a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
@@ -750,8 +750,10 @@ def live_weather():
             other_country = row['country']
             other_lat = row['latitude']
             other_lon = row['longitude']
+            print(f"Other city is {other_city} and other country is {other_country} and other lat is {other_lat} and other lon is {other_lon}")
             if(city != other_city):
                 distance = haversine(lat, lon, other_lat, other_lon)
+                print(f"Other city is {other_city} and distance is {distance}")
                 if distance <= 500:  # Restrict radius to 500 km
                     nearby_cities.append((other_city, other_country, round(distance, 2)))  # Add city, country, and distance
                     map_data.append({'city': other_city, 'lat': other_lat, 'lon': other_lon, 'type': 'Nearby City', 'distance': round(distance, 2)})
@@ -788,7 +790,8 @@ def live_weather():
             return render_template('live_weather.html', error="Could not fetch hourly weather data.")
 
         print(api_df)
-
+        print("Nearby cities")
+        print(map_data)
         # Render a Plotly table with the data
         import plotly.graph_objects as go
         fig = go.Figure(data=[go.Table(
