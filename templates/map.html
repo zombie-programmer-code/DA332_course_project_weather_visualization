@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Temperature Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    #map { height: 90vh; }
+    body { margin: 0; padding: 0; font-family: sans-serif; }
+    .control-panel {
+      position: absolute; top: 10px; left: 50px; z-index: 1000;
+      background: white; padding: 10px; border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      min-width: 250px;
+    }
+    .search-container {
+      display: flex;
+      margin-top: 5px;
+      position: relative;
+    }
+    #city-search {
+      flex-grow: 1;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    #search-button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    #search-button:hover {
+      background-color: #45a049;
+    }
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #ddd;
+      border-top: none;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: white;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .autocomplete-items div {
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .autocomplete-items div:hover {
+      background-color: #e9e9e9;
+    }
+    .autocomplete-active {
+      background-color: #e9e9e9 !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="control-panel">
+  <label for="city-search"><strong>Search for a city:</strong></label>
+  <div class="search-container">
+    <input type="text" id="city-search" placeholder="Enter city name..." value="Delhi, India">
+    <button id="search-button">Go</button>
+    <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<script>
+// ✅ Your OpenWeatherMap API key
+const apiKey = '87872e0eff8f1f87980768bd690574a3';
+
+// Shared marker tracker
+let markers = [];
+let autocompleteTimeout = null;
+
+// 🗺️ Initialize map
+const map = L.map('map').setView([22.9734, 78.6569], 5); // Centered on India
+
+// 🧱 Base map layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 10,
+}).addTo(map);
+
+// 🌐 Weather overlays
+const tempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+    opacity: 0.8,
+    attribution: '&copy; <a href="https://openweathermap.org/">OpenWeatherMap</a>',
+  });
+  
+  const cloudsLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+    opacity: 1,
+  });
+  
+  const precipLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+    opacity: 1,
+  });
+  
+  const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+    opacity: 1,
+  });
+  
+  // 🗺️ Add temperature layer by default
+  tempLayer.addTo(map);
+  
+  // 🎛️ Layer control
+  const baseLayers = {
+    "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
+  };
+  
+  const overlayLayers = {
+    "Temperature": tempLayer,
+    "Clouds": cloudsLayer,
+    "Precipitation": precipLayer,
+    "Wind": windLayer,
+  };
+  
+  L.control.layers(baseLayers, overlayLayers, { collapsed: false }).addTo(map);
+  
+// 🌡️ Get temperature at coordinates (for popup)
+async function getTemperature(lat, lon) {
+  const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`);
+  const data = await res.json();
+  return data.main.temp;
+}
+
+// 🖱️ Click to show temperature
+async function onMapClick(e) {
+  const lat = e.latlng.lat;
+  const lon = e.latlng.lng;
+
+  try {
+    const temp = await getTemperature(lat, lon);
+    const marker = L.marker([lat, lon]).addTo(map)
+      .bindPopup(`Location: (${lat.toFixed(2)}, ${lon.toFixed(2)})<br>Temperature: ${temp.toFixed(1)}°C`)
+      .openPopup();
+    markers.push(marker);
+  } catch (err) {
+    alert("Error fetching weather data: " + err.message);
+  }
+}
+
+// 📍 Search & Autocomplete
+async function fetchCitySuggestions(query) {
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5&email=your_email@example.com`);
+  const data = await res.json();
+  return data.map(item => item.display_name);
+}
+
+function displayAutocompleteItems(suggestions) {
+  const autocompleteList = document.getElementById("autocomplete-list");
+  autocompleteList.innerHTML = "";
+  
+  if (suggestions.length === 0) {
+    autocompleteList.style.display = "none";
+    return;
+  }
+  
+  suggestions.forEach(suggestion => {
+    const div = document.createElement("div");
+    div.innerHTML = suggestion;
+    div.addEventListener("click", function() {
+      document.getElementById("city-search").value = suggestion;
+      autocompleteList.style.display = "none";
+      document.getElementById("search-button").click();
+    });
+    autocompleteList.appendChild(div);
+  });
+  
+  autocompleteList.style.display = "block";
+}
+
+document.getElementById("city-search").addEventListener("input", function(e) {
+  const query = e.target.value.trim();
+  if (autocompleteTimeout) clearTimeout(autocompleteTimeout);
+  if (query.length < 3) {
+    document.getElementById("autocomplete-list").style.display = "none";
+    return;
+  }
+  autocompleteTimeout = setTimeout(async () => {
+    const suggestions = await fetchCitySuggestions(query);
+    displayAutocompleteItems(suggestions);
+  }, 300);
+});
+
+document.addEventListener("click", function(e) {
+  if (e.target.id !== "city-search") {
+    document.getElementById("autocomplete-list").style.display = "none";
+  }
+});
+
+// 📍 Get coordinates of a city
+async function getCoords(city) {
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}&email=your_email@example.com`);
+  const data = await res.json();
+  if (data && data[0]) {
+    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+  } else {
+    throw new Error("City not found");
+  }
+}
+
+// 📌 Plot city and temp
+async function plotCity(city) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  try {
+    const [lat, lon] = await getCoords(city);
+    const cityTemp = await getTemperature(lat, lon);
+
+    const centerMarker = L.marker([lat, lon])
+      .bindPopup(`${city}: ${cityTemp.toFixed(1)}°C`)
+      .addTo(map)
+      .openPopup();
+    markers.push(centerMarker);
+    map.setView([lat, lon], 8);
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
+
+// 🔘 Search actions
+document.getElementById("search-button").addEventListener("click", () => {
+  const cityName = document.getElementById("city-search").value.trim();
+  if (cityName) plotCity(cityName);
+});
+
+document.getElementById("city-search").addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("search-button").click();
+  }
+});
+
+// ⬆⬇ Keyboard nav for autocomplete
+document.getElementById("city-search").addEventListener("keydown", function(e) {
+  const autocompleteList = document.getElementById("autocomplete-list");
+  const items = autocompleteList.getElementsByTagName("div");
+  if (items.length === 0) return;
+
+  let activeItem = autocompleteList.querySelector(".autocomplete-active");
+  let activeIndex = -1;
+
+  if (activeItem) {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i] === activeItem) {
+        activeIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (activeItem) activeItem.classList.remove("autocomplete-active");
+    activeIndex = (activeIndex + 1) % items.length;
+    items[activeIndex].classList.add("autocomplete-active");
+    items[activeIndex].scrollIntoView({ block: "nearest" });
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (activeItem) activeItem.classList.remove("autocomplete-active");
+    activeIndex = (activeIndex - 1 + items.length) % items.length;
+    items[activeIndex].classList.add("autocomplete-active");
+    items[activeIndex].scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter" && activeItem) {
+    e.preventDefault();
+    document.getElementById("city-search").value = activeItem.textContent;
+    autocompleteList.style.display = "none";
+    document.getElementById("search-button").click();
+  }
+});
+
+// 🖱️ Map click listener
+map.on('click', onMapClick);
+
+// 🚀 Load initial city
+plotCity("Delhi, India");
+</script>
+
+</body>
+</html>

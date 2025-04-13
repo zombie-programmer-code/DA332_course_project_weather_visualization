@@ -475,6 +475,13 @@ def today():
         return render_template('suspense_fast.html', destination='Temperature_today')
     return render_template('Today.html')
 
+@app.route('/Live-Weather-Map')
+def map():
+    # Logic for temperature today
+    if request.args.get('loading') != 'complete':
+        return render_template('suspense_fast.html', destination='Live-Weather-Map')
+    return render_template('map.html')
+
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
     # Load the world_cities_lat_long file
