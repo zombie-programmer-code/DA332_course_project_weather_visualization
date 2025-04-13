@@ -2,7 +2,7 @@ import os
 import csv
 from datetime import datetime, time, timedelta
 from cs50 import SQL
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect,session
 import pandas as pd
 import plotly.express as px
 import requests
@@ -31,6 +31,8 @@ import tensorflow as tf
 from timezonefinder import TimezoneFinder
 import pytz
 app = Flask(__name__)
+import secrets
+app.secret_key = secrets.token_hex(16)
 db = SQL("sqlite:///weather.db")
 db1 = SQL("sqlite:///live_weather_map.db")
 db2 = SQL("sqlite:///city_lat_long.db")
@@ -54,7 +56,7 @@ def haversine(lat1, lon1, lat2, lon2):
     """
     R = 6371  # Radius of the Earth in kilometers
     dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
+    dlon = radians(lat2 - lon1)
     a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
@@ -301,9 +303,20 @@ def populate_lat_long_table():
 def index():
     return render_template('home.html')
 
+
+@app.route('/check_status')
+def check_status():
+    page = request.args.get('page', '')
+    # Check if the page is ready in the session
+    is_ready = session.get(f'{page}_ready', True)
+    return jsonify({'ready': is_ready})
+    
 @app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
+     
+    
     if request.method == 'POST':
+        
         # Line plot inputs
         line_cities = request.form.getlist('line_cities')
         line_from_year = int(request.form['line_from_year'])
@@ -365,16 +378,90 @@ def historical_trends():
         # Convert the plots to HTML
         line_plot_html = line_fig.to_html(full_html=False)
         box_plot_html = box_fig.to_html(full_html=False)
-
         # Render the plots in the HTML template
         return render_template(
             'historical_trends_plot.html',
             line_plot_html=line_plot_html,
             box_plot_html=box_plot_html
         )
+        
 
     # Render the form if the request method is GET
     return render_template('historical_trends.html', city_names=city_names)
+
+@app.route('/view_pre_generated_statistics', methods=['GET'])
+def view_pre_generated_statistics():
+    # If the loading flag is not complete, render the suspense page.
+    if request.args.get('loading') != 'complete':
+        return render_template('suspense_fast.html', destination='view_pre_generated_statistics')
+    
+    # Otherwise (loading is complete), continue to build the plots.
+    region_month_stats = pd.read_csv('data/region_month_stats.csv')
+    print("work in progress")
+    
+    # Map numeric months to month names
+    month_mapping = {
+        1: "January", 2: "February", 3: "March", 4: "April",
+        5: "May", 6: "June", 7: "July", 8: "August",
+        9: "September", 10: "October", 11: "November", 12: "December"
+    }
+    region_month_stats['Month'] = region_month_stats['Month'].map(month_mapping)
+
+    # Generate the maximum temperature plot
+    max_plot_fig = px.bar(
+        region_month_stats,
+        x='Region',
+        y='Max Temperature (°C)_mean',
+        error_y='Max Temperature (°C)_std',
+        color='Region',
+        facet_col='Month',
+        facet_col_wrap=4,
+        title="Monthly Maximum Temperature with Standard Deviations Highlighted"
+    )
+    max_plot_fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+    max_plot_fig.update_yaxes(title_text=None)
+    max_plot_fig.update_layout(height=600)
+    max_plot_html = max_plot_fig.to_html(full_html=False)
+
+    # Generate the minimum temperature plot
+    min_plot_fig = px.bar(
+        region_month_stats,
+        x='Region',
+        y='Min Temperature (°C)_mean',
+        error_y='Min Temperature (°C)_std',
+        color='Region',
+        facet_col='Month',
+        facet_col_wrap=4,
+        title="Monthly Minimum Temperature with Standard Deviations Highlighted"
+    )
+    min_plot_fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+    min_plot_fig.update_yaxes(title_text=None)
+    min_plot_fig.update_layout(height=600)
+    min_plot_html = min_plot_fig.to_html(full_html=False)
+
+    # Generate the rainfall plot
+    rain_fig = px.bar(
+        region_month_stats,
+        x='Region',
+        y='Total Rainfall (mm)_mean',
+        error_y='Total Rainfall (mm)_std',
+        color='Region',
+        facet_col='Month',
+        facet_col_wrap=4,
+        title="Monthly Rainfall (mm) with Standard Deviations Highlighted"
+    )
+    rain_fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+    rain_fig.update_yaxes(title_text=None)
+    rain_fig.update_layout(height=600)
+    rain_plot_html = rain_fig.to_html(full_html=False)
+
+    # Render the final template with the plots.
+    return render_template(
+        'historical_statistics.html',
+        max_plot_html=max_plot_html,
+        min_plot_html=min_plot_html,
+        rain_plot_html=rain_plot_html
+    )
 
 @app.route('/forecasts')
 def forecasts():
@@ -384,6 +471,8 @@ def forecasts():
 @app.route('/Temperature_today')
 def today():
     # Logic for temperature today
+    if request.args.get('loading') != 'complete':
+        return render_template('suspense_fast.html', destination='Temperature_today')
     return render_template('Today.html')
 
 @app.route('/autocomplete', methods=['GET'])

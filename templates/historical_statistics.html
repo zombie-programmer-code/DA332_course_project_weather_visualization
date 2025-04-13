@@ -1,32 +1,17 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Historical Weather Trends
+Historical Weather Statistics for 35 Indian Cities
 {% endblock %}
 
 {% block main %}
 <div class="container mt-4">
     <!-- Header Section -->
     <div class="text-center p-4 mb-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
-        <h1 class="mb-2" style="font-weight: bold;">Historical Weather Trends</h1>
-        <p style="font-size: 1.2rem;">Visualize historical weather data with line and box plots.</p>
+        <h1 class="mb-2" style="font-weight: bold;">Historical Weather Statistics</h1>
+        <p style="font-size: 1.2rem;">Visualize historical weather aggregated data with bar plots.</p>
     </div>
 
-    <!-- Line Plot Section -->
-    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Line Plot</h2>
-        <div style="overflow-x: auto;">
-            {{ line_plot_html|safe }}
-        </div>
-    </div>
-
-    <!-- Box Plot Section -->
-    <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Box Plot</h2>
-        <div style="overflow-x: auto;">
-            {{ box_plot_html|safe }}
-        </div>
-    </div>
     <!-- Max Temp Plot Section -->
     <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <h2 class="text-center" style="color: #34495e; font-weight: bold;">Maximum Temperatures by region</h2>
@@ -50,7 +35,7 @@ Historical Weather Trends
     </div>
     <!-- Back Button -->
     <div class="text-center">
-        <a href="/historical_trends" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;" 
+        <a href="/" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;" 
            onmouseover="this.style.transform='scale(1.05)'" 
            onmouseout="this.style.transform='scale(1)'">
             Back

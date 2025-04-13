@@ -5,72 +5,124 @@ Welcome to Weather Visualization!
 {% endblock %}
 
 {% block main %}
-<div class="container mt-4">
-    <h1 class="mb-4 text-center" style="font-family: 'Arial', sans-serif; font-weight: bold; color: #2c3e50;">
-        Welcome to the Weather Visualization Project!
-    </h1>
-    <p class="text-center" style="font-size: 1.2rem; color: #7f8c8d;">
-        Explore weather trends, forecasts, and live conditions for your favorite cities.
-    </p>
 
+<div class="container mt-4">
+    <!-- <div class="animated-background"></div> -->
+
+    <h1 class="mb-4 text-center animated-text" style="font-family: 'Times New Roman', Times, serif; font-weight: 700; color: #02a2b3; text-transform: none; letter-spacing: 3px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">
+        Discover the World of Weather Visualization !
+    </h1>
+    <!-- <p class="text-center animated-text" style="font-size: 1.3rem; color: #7f8c8d; font-style: italic; line-height: 1.6; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);"></p>
+        Dive into weather trends, forecasts, and live updates for your favorite locations.
+    </p> -->
+
+    <style>
+        .animated-text {
+            animation: fadeInUp 4s cubic-bezier(0.25, 1, 0.5, 1), colorChange 2s infinite alternate;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes colorChange {
+            0% {
+                color: #57b7be;
+            }
+            50% {
+                color: #207b80;
+            }
+            100% {
+                color: #036c9d;
+            }
+        }
+    </style>
+    
     <!-- Call to Action -->
     <div class="row mb-4 justify-content-center">
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <img src="{{ url_for('static', filename='historical_trends.png') }}" class="card-img-top" alt="Historical Trends" style="height: 200px; object-fit: cover;">
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Historical Trends</h5>
                     <p class="card-text" style="color: #7f8c8d;">Analyze past weather data to uncover trends and patterns.</p>
-                    <a href="/historical_trends" class="btn btn-primary" style="background: linear-gradient(45deg, #3498db, #2980b9); border: none;">View Trends</a>
+                    <a href="/historical_trends" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #9fd4f8, #2980b9); border: none;">View Trends</a>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
+                <img src="{{ url_for('static', filename='historical_stats.png') }}" class="card-img-top" alt="Aggregated Statistical Trends" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Historical Statistics</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Look at some region-wise statistics, aggregated over the last 10 years.</p>
+                    <a href="/view_pre_generated_statistics" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #b2fbf0, #017c59); border: none;">View Trends</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <img src="{{ url_for('static', filename='forecasts.jpg') }}" class="card-img-top" alt="Forecasts" style="height: 200px; object-fit: cover;">
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Weather Forecasts</h5>
                     <p class="card-text" style="color: #7f8c8d;">Get accurate weather forecasts for the days ahead.</p>
-                    <a href="/forecasts" class="btn btn-primary" style="background: linear-gradient(45deg, #e67e22, #d35400); border: none;">View Forecasts</a>
+                    <a href="/forecasts" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #f4d3b7, #d35400); border: none;">View Forecasts</a>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <img src="{{ url_for('static', filename='live_weather.jpeg') }}" class="card-img-top" alt="Live Weather" style="height: 200px; object-fit: cover;">
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
                     <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions for your city.</p>
-                    <a href="/live_weather" class="btn btn-primary" style="background: linear-gradient(45deg, #2ecc71, #27ae60); border: none;">View Live Weather</a>
+                    <a href="/live_weather" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #e2fcac, #27ae60); border: none;">View Live Weather</a>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <img src="{{ url_for('static', filename='live_weather_map_my.png') }}" class="card-img-top" alt="Live Weather" style="height: 200px; object-fit: cover;">
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
-                    <p class="card-text" style="color: #005833;">Check real-time weather conditions around the world.</p>
-                    <a href="/live_weather_map" class="btn btn-primary" style="background: linear-gradient(45deg, #e67e22, #d35400); border: none;">View Live Weather Map</a>
+                    <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions around the world.</p>
+                    <a href="/live_weather_map" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #f5c193, #d35400); border: none;">View Live Weather Map</a>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden; transition: transform 0.3s;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <img src="{{ url_for('static', filename='country_live_weather_map.png') }}" class="card-img-top" alt="Live Weather by Country" style="height: 200px; object-fit: cover;">
                 <div class="card-body text-center">
                     <h5 class="card-title" style="color: #34495e;">Live Weather</h5>
-                    <p class="card-text" style="color: #005833;">Check real-time weather conditions for your country.</p>
-                    <a href="/country_weather" class="btn btn-primary" style="background: linear-gradient(45deg, #087eff, #087eff); border: none;">View Live Weather Map</a>
+                    <p class="card-text" style="color: #7f8c8d;">Check real-time weather conditions for your country.</p>
+                    <a href="/country_weather" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #b5f4f7, #087eff); border: none;">View Live Weather Map</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
+                <img src="{{ url_for('static', filename='india_temp_map.png') }}" class="card-img-top" alt="Temperature_today" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="color: #34495e;">Countrywide Weather</h5>
+                    <p class="card-text" style="color: #7f8c8d;">Take a look at the Today's nationwide temperature map.</p>
+                    <a href="/Temperature_today" class="btn btn-primary interactive-btn" style="background: linear-gradient(45deg, #b6f4b3, #067f00); border: none;">View Today's Temperature Map</a>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Features -->
-    <div class="row text-center justify-content-center">
+    <!-- <div class="row text-center justify-content-center">
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <div class="card-body">
                     <h5 class="card-title" style="color: #34495e;">Comprehensive Data</h5>
                     <p class="card-text" style="color: #7f8c8d;">Access detailed weather data for multiple cities.</p>
@@ -78,13 +130,117 @@ Welcome to Weather Visualization!
             </div>
         </div>
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100 shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="card h-100 shadow-sm interactive-card" style="border-radius: 15px; overflow: hidden;">
                 <div class="card-body">
                     <h5 class="card-title" style="color: #34495e;">User-Friendly Interface</h5>
                     <p class="card-text" style="color: #7f8c8d;">Navigate easily through our intuitive design.</p>
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
+
+<!-- Add Custom CSS for Enhanced Interactivity -->
+<style>
+    /* Card Hover Effects */
+    .animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: linear-gradient(45deg, #e0f7fa, #b2ebf2, #80deea, #4dd0e1, #26c6da, #00bcd4);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+/* @keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.sky-container {
+  z-index: 1;
+  position: relative;
+}
+
+.interactive-card {
+  z-index: 2;
+}
+/*  */
+
+
+    .interactive-card {
+        margin: 15px;
+        transform: scale(0.95);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .interactive-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .interactive-card img {
+        transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+    }
+
+    .interactive-card:hover img {
+        transform: scale(1.1);
+        filter: brightness(0.9);
+    }
+
+    /* Button Hover Effects */
+    .interactive-btn {
+        transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+    }
+
+    .interactive-btn:hover {
+        background: linear-gradient(45deg, #1abc9c, #16a085);
+        transform: translateY(-3px);
+    }
+
+    /* Smooth Transition for All Elements */
+    .interactive-card, .interactive-btn {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    /* Add additional spacing to the row */
+    .row {
+        margin-left: -20px;
+        margin-right: -20px;
+    }
+    
+    /* Adjust column padding for better spacing */
+    .col-md-6, .col-lg-4 {
+        padding: 15px;
+    }
+</style>
+
+<script>
+    document.addEventListener('mousemove', function(e) {
+      const cards = document.querySelectorAll('.interactive-card');
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+    
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const cardX = rect.left + rect.width / 2;
+        const cardY = rect.top + rect.height / 2;
+    
+        const angleX = (mouseY - cardY) / 30;
+        const angleY = (cardX - mouseX) / 30;
+    
+        card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(0.95)`;
+      });
+    });
+    </script>
+    
 {% endblock %}
