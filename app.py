@@ -757,7 +757,6 @@ def live_weather():
             other_country = row['country']
             other_lat = row['latitude']
             other_lon = row['longitude']
-            print(f"Other city is {other_city} and other country is {other_country} and other lat is {other_lat} and other lon is {other_lon}")
             if(city != other_city):
                 distance = haversine(lat, lon, other_lat, other_lon)
                 print(f"Other city is {other_city} and distance is {distance}")
