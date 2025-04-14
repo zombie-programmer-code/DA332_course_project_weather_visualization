@@ -506,8 +506,10 @@ def live_weather_map():
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             temperature REAL,
+            feels_like REAL,
             humidity REAL,
             precipitation REAL,
+            cloud_cover REAL,
             utc_time TEXT NOT NULL
         )
     """)
@@ -535,13 +537,20 @@ def live_weather_map():
         )
 
         if existing_data:
+            # Determine the weather symbol
+            weather_symbol = "☀️" if existing_data[0]['cloud_cover'] < 40 else (
+                "🌧️" if existing_data[0]['precipitation'] > 0 else "☁️"
+            )
             map_data.append({
                 'city': city,
                 'lat': lat,
                 'lon': lon,
                 'temperature': existing_data[0]['temperature'],
+                'feels_like': existing_data[0]['feels_like'],
                 'humidity': existing_data[0]['humidity'],
-                'precipitation': existing_data[0]['precipitation']
+                'precipitation': existing_data[0]['precipitation'],
+                'cloud_cover': existing_data[0]['cloud_cover'],
+                'weather_symbol': weather_symbol
             })
             flag = 1
         else:
@@ -552,19 +561,28 @@ def live_weather_map():
                 # Extract the first row of weather data
                 weather_row = weather_data.iloc[0]
                 temperature = weather_row['Temperature (°C)']
-                humidity = weather_row['Humidity (%)']
-                humidity = float(weather_row['Humidity (%)'])  
+                feels_like = weather_row['Feels Like (°C)']
+                humidity = float(weather_row['Humidity (%)'])
                 precipitation = weather_row['Precipitation (mm)']
+                cloud_cover = float(weather_row['Cloud Cover (%)'])
+
+                # Determine the weather symbol
+                weather_symbol = "☀️" if cloud_cover < 40 else (
+                    "🌧️" if precipitation > 0 else "☁️"
+                )
+
                 print(f"Inserting data for city: {city}")
                 print(f"Data types: city={type(city)}, lat={type(lat)}, lon={type(lon)}, "
-                    f"temperature={type(temperature)}, humidity={type(humidity)}, "
-                    f"precipitation={type(precipitation)}, utc_time={type(current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))}")
-                                # Store the data in the database
+                      f"temperature={type(temperature)}, feels_like={type(feels_like)}, "
+                      f"humidity={type(humidity)}, precipitation={type(precipitation)}, "
+                      f"cloud_cover={type(cloud_cover)}, utc_time={type(current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))}")
+
+                # Store the data in the database
                 db1.execute("""
                     INSERT INTO weather_map_data (
-                        city, latitude, longitude, temperature, humidity, precipitation, utc_time
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
+                        city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'), cloud_cover, feels_like)
 
                 # Add the data to the map
                 map_data.append({
@@ -572,15 +590,18 @@ def live_weather_map():
                     'lat': lat,
                     'lon': lon,
                     'temperature': temperature,
+                    'feels_like': feels_like,
                     'humidity': humidity,
-                    'precipitation': precipitation
+                    'precipitation': precipitation,
+                    'cloud_cover': cloud_cover,
+                    'weather_symbol': weather_symbol
                 })
 
     # Convert to DataFrame
     map_df = pd.DataFrame(map_data)
     print(map_df)
     # Generate the map
-    if(flag == 1):
+    if flag == 1:
         import plotly.express as px
         fig = px.scatter_mapbox(
             map_df,
@@ -589,8 +610,11 @@ def live_weather_map():
             hover_name='city',
             hover_data={
                 'temperature': True,
+                'feels_like': True,
                 'humidity': True,
-                'precipitation': True
+                'precipitation': True,
+                'cloud_cover': True,
+                'weather_symbol': True
             },
             color='temperature',
             size='humidity',
@@ -599,7 +623,7 @@ def live_weather_map():
         )
         fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=2, mapbox_center={'lat': 20, 'lon': 0})
         fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
-        
+
         current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         # Convert the map to HTML
         map_html = fig.to_html(full_html=False)
@@ -653,14 +677,20 @@ def country_weather():
 
             if existing_data:
                 # Use existing data
+                weather_symbol = "☀️" if existing_data[0]['cloud_cover'] < 40 else (
+                    "🌧️" if existing_data[0]['precipitation'] > 0 else "☁️"
+                )
                 map_data.append({
                     'city': city,
                     'lat': lat,
                     'lon': lon,
                     'temperature': existing_data[0]['temperature'],
+                    'feels_like': existing_data[0]['feels_like'],
                     'humidity': existing_data[0]['humidity'],
                     'precipitation': existing_data[0]['precipitation'],
-                    'local_time': convert_utc_to_local(current_utc_time, lat, lon).strftime('%Y-%m-%d %H:%M:%S')
+                    'cloud_cover': existing_data[0]['cloud_cover'],
+                    'local_time': convert_utc_to_local(current_utc_time, lat, lon).strftime('%Y-%m-%d %H:%M:%S'),
+                    'weather_symbol': weather_symbol
                 })
             else:
                 # Fetch weather data from the API
@@ -672,9 +702,15 @@ def country_weather():
                     # Extract the first row of weather data
                     weather_row = weather_data.iloc[0]
                     temperature = weather_row['Temperature (°C)']
-                    humidity = weather_row['Humidity (%)']
-                    humidity = float(weather_row['Humidity (%)'])  
+                    feels_like = weather_row['Feels Like (°C)']
+                    humidity = float(weather_row['Humidity (%)'])
                     precipitation = weather_row['Precipitation (mm)']
+                    cloud_cover = float(weather_row['Cloud Cover (%)'])
+
+                    # Determine the weather symbol
+                    weather_symbol = "☀️" if cloud_cover < 40.00 else (
+                        "🌧️" if precipitation > 0 else "☁️"
+                    )
 
                     # Convert UTC time to local time for the city
                     local_time = convert_utc_to_local(current_utc_time, lat, lon)
@@ -682,9 +718,9 @@ def country_weather():
                     # Store the data in the database
                     db1.execute("""
                         INSERT INTO weather_map_data (
-                            city, latitude, longitude, temperature, humidity, precipitation, utc_time
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
+                            city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'), cloud_cover, feels_like)
 
                     # Add the data to the map
                     map_data.append({
@@ -692,9 +728,12 @@ def country_weather():
                         'lat': lat,
                         'lon': lon,
                         'temperature': temperature,
+                        'feels_like': feels_like,
                         'humidity': humidity,
                         'precipitation': precipitation,
-                        'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S')
+                        'cloud_cover': cloud_cover,
+                        'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'weather_symbol': weather_symbol
                     })
 
         # Convert to DataFrame
@@ -709,9 +748,12 @@ def country_weather():
             hover_name='city',
             hover_data={
                 'temperature': True,
+                'feels_like': True,
                 'humidity': True,
                 'precipitation': True,
-                'local_time': True  # Add local time to hover data
+                'cloud_cover': True,
+                'local_time': True,
+                'weather_symbol': True  # Add weather symbol to hover data
             },
             color='temperature',
             size='humidity',
