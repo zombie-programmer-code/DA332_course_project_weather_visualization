@@ -496,6 +496,26 @@ def autocomplete():
     # Return the suggestions as a JSON response
     return jsonify(list(suggestions))
 
+def get_sunrise_sunset_times(lat, lon):
+    """
+    Fetches sunrise and sunset times for a given latitude and longitude using the Sunrise-Sunset API.
+    """
+    url = "https://api.sunrise-sunset.org/json"
+    params = {
+        "lat": lat,
+        "lng": lon,
+        "formatted": 0  # Use ISO 8601 format for easier parsing
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    sunrise = datetime.fromisoformat(data['results']['sunrise'])
+    sunset = datetime.fromisoformat(data['results']['sunset'])
+
+    return sunrise, sunset
+
+
 @app.route('/live_weather_map', methods=['GET'])
 def live_weather_map():
     # Create the weather_map_data table if it doesn't exist
@@ -510,7 +530,9 @@ def live_weather_map():
             humidity REAL,
             precipitation REAL,
             cloud_cover REAL,
-            utc_time TEXT NOT NULL
+            utc_time TEXT NOT NULL,
+            sunrise TEXT,
+            sunset TEXT
         )
     """)
     flag = 0
@@ -537,10 +559,28 @@ def live_weather_map():
         )
 
         if existing_data:
-            # Determine the weather symbol
+            # Convert UTC time to local time
+            local_time = convert_utc_to_local(current_utc_time, lat, lon)
+
+            # Fetch sunrise and sunset times
+            #sunrise, sunset = get_sunrise_sunset_times(lat, lon)
+            sunrise = existing_data[0]['sunrise']
+            sunset = existing_data[0]['sunset']
+            # Convert sunrise and sunset to datetime objects
+            sunrise = datetime.strptime(sunrise, '%Y-%m-%d %H:%M:%S')
+            sunset = datetime.strptime(sunset, '%Y-%m-%d %H:%M:%S')
+
+            # Assign the same timezone as local_time
+            sunrise = sunrise.replace(tzinfo=local_time.tzinfo)
+            sunset = sunset.replace(tzinfo=local_time.tzinfo)
+            # Determine if the sun is up
             weather_symbol = "☀️" if existing_data[0]['cloud_cover'] < 40 else (
                 "🌧️" if existing_data[0]['precipitation'] > 0 else "☁️"
             )
+            if not (sunrise <= local_time <= sunset):  # If it's not daytime
+                if weather_symbol == "☀️":
+                    weather_symbol = "🌙"
+
             map_data.append({
                 'city': city,
                 'lat': lat,
@@ -550,6 +590,9 @@ def live_weather_map():
                 'humidity': existing_data[0]['humidity'],
                 'precipitation': existing_data[0]['precipitation'],
                 'cloud_cover': existing_data[0]['cloud_cover'],
+                'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'sunrise': existing_data[0]['sunrise'],
+                'sunset': existing_data[0]['sunset'],
                 'weather_symbol': weather_symbol
             })
             flag = 1
@@ -566,10 +609,23 @@ def live_weather_map():
                 precipitation = weather_row['Precipitation (mm)']
                 cloud_cover = float(weather_row['Cloud Cover (%)'])
 
-                # Determine the weather symbol
+                # Convert UTC time to local time
+                local_time = convert_utc_to_local(current_utc_time, lat, lon)
+
+                # Fetch sunrise and sunset times
+                sunrise, sunset = get_sunrise_sunset_times(lat, lon)
+                sunrise = convert_utc_to_local(sunrise, lat, lon)
+                sunset = convert_utc_to_local(sunset, lat, lon)
+                sunrise = datetime.strptime(sunrise, '%Y-%m-%d %H:%M:%S')
+                sunset = datetime.strptime(sunset, '%Y-%m-%d %H:%M:%S')
+                sunrise = sunrise.replace(tzinfo=local_time.tzinfo)
+                sunset = sunset.replace(tzinfo=local_time.tzinfo)       
                 weather_symbol = "☀️" if cloud_cover < 40 else (
                     "🌧️" if precipitation > 0 else "☁️"
                 )
+                if not (sunrise <= local_time <= sunset):  # If it's not daytime
+                    if weather_symbol == "☀️":
+                        weather_symbol = "🌙"
 
                 print(f"Inserting data for city: {city}")
                 print(f"Data types: city={type(city)}, lat={type(lat)}, lon={type(lon)}, "
@@ -580,9 +636,9 @@ def live_weather_map():
                 # Store the data in the database
                 db1.execute("""
                     INSERT INTO weather_map_data (
-                        city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'), cloud_cover, feels_like)
+                        city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like, sunrise, sunset
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'), cloud_cover, feels_like, sunrise.strftime('%Y-%m-%d %H:%M:%S'), sunset.strftime('%Y-%m-%d %H:%M:%S'))
 
                 # Add the data to the map
                 map_data.append({
@@ -594,6 +650,9 @@ def live_weather_map():
                     'humidity': humidity,
                     'precipitation': precipitation,
                     'cloud_cover': cloud_cover,
+                    'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'sunrise': sunrise.strftime('%Y-%m-%d %H:%M:%S'),
+                    'sunset': sunset.strftime('%Y-%m-%d %H:%M:%S'),
                     'weather_symbol': weather_symbol
                 })
 
@@ -614,6 +673,9 @@ def live_weather_map():
                 'humidity': True,
                 'precipitation': True,
                 'cloud_cover': True,
+                'local_time': True,
+                'sunrise': True,
+                'sunset': True,
                 'weather_symbol': True
             },
             color='temperature',
@@ -676,10 +738,21 @@ def country_weather():
             )
 
             if existing_data:
-                # Use existing data
+                # Convert UTC time to local time
+                local_time = convert_utc_to_local(current_utc_time, lat, lon)
+
+                # Fetch sunrise and sunset times
+                sunrise = datetime.fromisoformat(existing_data[0]['sunrise'])
+                sunset = datetime.fromisoformat(existing_data[0]['sunset'])
+
+                # Determine if the sun is up
                 weather_symbol = "☀️" if existing_data[0]['cloud_cover'] < 40 else (
                     "🌧️" if existing_data[0]['precipitation'] > 0 else "☁️"
                 )
+                if not (sunrise <= local_time <= sunset):  # If it's not daytime
+                    if weather_symbol == "☀️":
+                        weather_symbol = "🌙"
+
                 map_data.append({
                     'city': city,
                     'lat': lat,
@@ -689,7 +762,9 @@ def country_weather():
                     'humidity': existing_data[0]['humidity'],
                     'precipitation': existing_data[0]['precipitation'],
                     'cloud_cover': existing_data[0]['cloud_cover'],
-                    'local_time': convert_utc_to_local(current_utc_time, lat, lon).strftime('%Y-%m-%d %H:%M:%S'),
+                    'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'sunrise': sunrise.strftime('%Y-%m-%d %H:%M:%S'),
+                    'sunset': sunset.strftime('%Y-%m-%d %H:%M:%S'),
                     'weather_symbol': weather_symbol
                 })
             else:
@@ -707,10 +782,16 @@ def country_weather():
                     precipitation = weather_row['Precipitation (mm)']
                     cloud_cover = float(weather_row['Cloud Cover (%)'])
 
+                    # Fetch sunrise and sunset times
+                    sunrise, sunset = get_sunrise_sunset_times(lat, lon)
+
                     # Determine the weather symbol
-                    weather_symbol = "☀️" if cloud_cover < 40.00 else (
+                    weather_symbol = "☀️" if cloud_cover < 40 else (
                         "🌧️" if precipitation > 0 else "☁️"
                     )
+                    if not (sunrise <= current_utc_time <= sunset):  # If it's not daytime
+                        if weather_symbol == "☀️":
+                            weather_symbol = "🌙"
 
                     # Convert UTC time to local time for the city
                     local_time = convert_utc_to_local(current_utc_time, lat, lon)
@@ -718,9 +799,9 @@ def country_weather():
                     # Store the data in the database
                     db1.execute("""
                         INSERT INTO weather_map_data (
-                            city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'), cloud_cover, feels_like)
+                            city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like, sunrise, sunset
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, city, lat, lon, temperature, humidity, precipitation, current_utc_time.strftime('%Y-%m-%d %H:%M:%S'), cloud_cover, feels_like, sunrise.strftime('%Y-%m-%d %H:%M:%S'), sunset.strftime('%Y-%m-%d %H:%M:%S'))
 
                     # Add the data to the map
                     map_data.append({
@@ -733,6 +814,8 @@ def country_weather():
                         'precipitation': precipitation,
                         'cloud_cover': cloud_cover,
                         'local_time': local_time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'sunrise': sunrise.strftime('%Y-%m-%d %H:%M:%S'),
+                        'sunset': sunset.strftime('%Y-%m-%d %H:%M:%S'),
                         'weather_symbol': weather_symbol
                     })
 
@@ -753,6 +836,8 @@ def country_weather():
                 'precipitation': True,
                 'cloud_cover': True,
                 'local_time': True,
+                'sunrise': True,
+                'sunset': True,
                 'weather_symbol': True  # Add weather symbol to hover data
             },
             color='temperature',
@@ -769,7 +854,6 @@ def country_weather():
         return render_template('country_weather_map.html', map_html=map_html, country=country, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
     # Render the input form
     return render_template('country_weather.html')
-
 
 
 @app.route('/about', methods=['GET'])
