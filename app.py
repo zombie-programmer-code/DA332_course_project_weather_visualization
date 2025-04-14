@@ -614,12 +614,10 @@ def live_weather_map():
 
                 # Fetch sunrise and sunset times
                 sunrise, sunset = get_sunrise_sunset_times(lat, lon)
+
+                # Convert sunrise and sunset to local time
                 sunrise = convert_utc_to_local(sunrise, lat, lon)
-                sunset = convert_utc_to_local(sunset, lat, lon)
-                sunrise = datetime.strptime(sunrise, '%Y-%m-%d %H:%M:%S')
-                sunset = datetime.strptime(sunset, '%Y-%m-%d %H:%M:%S')
-                sunrise = sunrise.replace(tzinfo=local_time.tzinfo)
-                sunset = sunset.replace(tzinfo=local_time.tzinfo)       
+                sunset = convert_utc_to_local(sunset, lat, lon)     
                 weather_symbol = "☀️" if cloud_cover < 40 else (
                     "🌧️" if precipitation > 0 else "☁️"
                 )
@@ -742,9 +740,16 @@ def country_weather():
                 local_time = convert_utc_to_local(current_utc_time, lat, lon)
 
                 # Fetch sunrise and sunset times
-                sunrise = datetime.fromisoformat(existing_data[0]['sunrise'])
-                sunset = datetime.fromisoformat(existing_data[0]['sunset'])
+                sunrise = existing_data[0]['sunrise']
+                sunset = existing_data[0]['sunset']
+                # Convert sunrise and sunset to datetime objects
+                sunrise = datetime.strptime(sunrise, '%Y-%m-%d %H:%M:%S')
+                sunset = datetime.strptime(sunset, '%Y-%m-%d %H:%M:%S')
 
+                # Assign the same timezone as local_time
+                sunrise = sunrise.replace(tzinfo=local_time.tzinfo)
+                sunset = sunset.replace(tzinfo=local_time.tzinfo)
+                
                 # Determine if the sun is up
                 weather_symbol = "☀️" if existing_data[0]['cloud_cover'] < 40 else (
                     "🌧️" if existing_data[0]['precipitation'] > 0 else "☁️"
@@ -782,19 +787,23 @@ def country_weather():
                     precipitation = weather_row['Precipitation (mm)']
                     cloud_cover = float(weather_row['Cloud Cover (%)'])
 
+                    local_time = convert_utc_to_local(current_utc_time, lat, lon)
+
                     # Fetch sunrise and sunset times
                     sunrise, sunset = get_sunrise_sunset_times(lat, lon)
 
+                    # Convert sunrise and sunset to local time
+                    sunrise = convert_utc_to_local(sunrise, lat, lon)
+                    sunset = convert_utc_to_local(sunset, lat, lon)       
                     # Determine the weather symbol
                     weather_symbol = "☀️" if cloud_cover < 40 else (
                         "🌧️" if precipitation > 0 else "☁️"
                     )
-                    if not (sunrise <= current_utc_time <= sunset):  # If it's not daytime
+                    if not (sunrise <= local_time <= sunset):  # If it's not daytime
                         if weather_symbol == "☀️":
                             weather_symbol = "🌙"
 
                     # Convert UTC time to local time for the city
-                    local_time = convert_utc_to_local(current_utc_time, lat, lon)
 
                     # Store the data in the database
                     db1.execute("""
