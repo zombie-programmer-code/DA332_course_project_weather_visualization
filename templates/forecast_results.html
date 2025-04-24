@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Forecast Results
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="text-center p-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">Forecast Results</h1>
+        <h4 class="text-light mb-2">City: {{ city }}</h4>
+        <h5 class="text-light">Forecast for the next {{ days }} days</h5>
+    </div>
+
+    <!-- Predictions Table -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Forecast Data</h4>
+        {{ pred_table_html|safe }}
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="/forecasts" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;">
+            Back
+        </a>
+    </div>
+</div>
+{% endblock %}

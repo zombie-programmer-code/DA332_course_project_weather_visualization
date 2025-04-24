@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Weather Forecasts
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="text-center p-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">Weather Forecasts</h1>
+        <h4 class="text-light mb-2">Enter City and Number of Days</h4>
+    </div>
+
+    <!-- Form Section -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <form method="POST" action="/forecasts">
+            <div class="mb-3">
+                <label for="city" class="form-label" style="font-weight: bold;">City:</label>
+                <input type="text" id="city" name="city" class="form-control" placeholder="Enter city name" autocomplete="off" required>
+                <div id="suggestions" style="border: 1px solid #ccc; display: none; position: absolute; background: white; z-index: 1000;"></div>
+            </div>
+            <div class="mb-3">
+                <label for="days" class="form-label" style="font-weight: bold;">Number of Days:</label>
+                <input type="number" id="days" name="days" class="form-control" min="1" max="7" placeholder="Enter number of days (1-7)" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-size: 1.1rem;">Get Forecast</button>
+        </form>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="/" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;">
+            Back
+        </a>
+    </div>
+</div>
+
+<script>
+    const cityInput = document.getElementById('city');
+    const suggestionsList = document.getElementById('suggestions');
+
+    cityInput.addEventListener('input', function () {
+        const query = cityInput.value;
+
+        if (query.length > 0) {
+            fetch(`/autocomplete?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous suggestions
+                    suggestionsList.innerHTML = '';
+
+                    // Add new suggestions
+                    data.forEach(city => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.textContent = city;
+                        suggestionItem.classList.add('suggestion-item');
+                        suggestionItem.style.padding = '5px';
+                        suggestionItem.style.cursor = 'pointer';
+
+                        // Add click event to select the city
+                        suggestionItem.addEventListener('click', function () {
+                            cityInput.value = city;
+                            suggestionsList.innerHTML = ''; // Clear suggestions
+                        });
+
+                        suggestionsList.appendChild(suggestionItem);
+                    });
+
+                    // Show suggestions
+                    suggestionsList.style.display = 'block';
+                });
+        } else {
+            // Hide suggestions if input is empty
+            suggestionsList.innerHTML = '';
+            suggestionsList.style.display = 'none';
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#suggestions, #city')) {
+            suggestionsList.innerHTML = '';
+            suggestionsList.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

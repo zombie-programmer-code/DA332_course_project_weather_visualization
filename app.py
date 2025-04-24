@@ -457,6 +457,16 @@ def get_lat_lon(city):
     except requests.exceptions.RequestException as e:
         print(f"⚠ Error fetching data for {city}: {e}")
         return None, None
+def round_prediction_df(df, decimal_places=2):
+    """
+    Rounds all float columns in the DataFrame to the specified number of decimal places.
+    Leaves non-numeric columns (like dates or strings) untouched.
+    """
+    df_rounded = df.copy()
+    for col in df_rounded.columns:
+        if pd.api.types.is_float_dtype(df_rounded[col]):
+            df_rounded[col] = df_rounded[col].round(decimal_places)
+    return df_rounded
 
 def populate_lat_long_table():
     if not hasattr(app, 'db_initialized'):
@@ -664,10 +674,28 @@ def view_pre_generated_statistics():
         rain_plot_html=rain_plot_html
     )
 
-@app.route('/forecasts')
+@app.route('/forecasts', methods=['GET', 'POST'])
 def forecasts():
-    # Logic for forecasts
-    return "Forecasts Page (to be implemented)"
+    if request.method == 'POST':
+        city = request.form['city'].strip()
+        days = int(request.form['days'])
+
+        # Get latitude and longitude for the city
+        lat, lon = get_lat_lon(city)
+
+        # Generate predictions
+        pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days)
+        pred_df = round_prediction_df(pred_df)
+        pd.set_option("display.precision", 1)
+
+        # Convert the DataFrame to an HTML table
+        pred_table_html = pred_df.to_html(classes='table table-striped table-bordered', index=False)
+
+        # Render the results page
+        return render_template('forecast_results.html', city=city, days=days, pred_table_html=pred_table_html)
+
+    # Render the form for GET requests
+    return render_template('forecasts.html')
 
 @app.route('/Temperature_today')
 def today():
