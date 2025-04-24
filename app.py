@@ -193,7 +193,13 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
                 response.raise_for_status()
                 data = response.json()
 
-                for hour_data in data.get("forecast", {}).get("forecastday", [])[0].get("hour", []):
+                # Check if forecast data is available
+                forecast_days = data.get("forecast", {}).get("forecastday", [])
+                if not forecast_days:
+                    print(f"No forecast data available for {date_str} at location {latitude}, {longitude}. Skipping...")
+                    break  # Skip to the next iteration if no forecast data is available
+
+                for hour_data in forecast_days[0].get("hour", []):
                     # Parse the local time from the API
                     local_time = datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M')
 
@@ -222,6 +228,10 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
                 tm.sleep(60)
 
         current_time += timedelta(hours=1)
+
+    if not all_data:
+        print(f"No data collected for location {latitude}, {longitude}. Returning an empty DataFrame.")
+        return pd.DataFrame()  # Return an empty DataFrame if no data was collected
 
     df = pd.DataFrame(all_data)
     # Keep only the last `num_hours` rows
