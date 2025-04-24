@@ -145,6 +145,197 @@ def convert_utc_to_local(dt_utc, lat, lon):
     # Convert to local timezone
     dt_local = dt_utc.astimezone(local_tz)
     return dt_local
+import requests
+import pandas as pd
+import time
+
+import requests
+import pandas as pd
+import time
+from datetime import datetime, timedelta
+
+def get_historical_weather(latitude, longitude):
+    """
+    Fetches 7 unique, non-NaN days of historical weather data going backward from today.
+    Skips any days that contain missing data (NaNs).
+    """
+    base_url = "https://archive-api.open-meteo.com/v1/archive"
+    collected_data = []
+    collected_dates = set()
+    current_day = datetime.today()
+
+    while len(collected_dates) < 7:
+        start_date = (current_day - timedelta(days=2)).strftime('%Y-%m-%d')
+        end_date = (current_day - timedelta(days=1)).strftime('%Y-%m-%d')
+
+        params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "start_date": start_date,
+            "end_date": end_date,
+            "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max",
+            "timezone": "auto"
+        }
+
+        try:
+            response = requests.get(base_url, params=params)
+            if response.status_code == 429:
+                print("Rate limit exceeded. Waiting 60 seconds before retrying...")
+                time.sleep(60)
+                continue
+
+            response.raise_for_status()
+            data = response.json()
+
+            if "daily" in data and "time" in data["daily"]:
+                for i, date_str in enumerate(data["daily"]["time"]):
+                    row = {
+                        "Date": pd.to_datetime(date_str),
+                        "Max Temperature (°C)": data["daily"]["temperature_2m_max"][i],
+                        "Min Temperature (°C)": data["daily"]["temperature_2m_min"][i],
+                        "Total Rainfall (mm)": data["daily"]["precipitation_sum"][i],
+                        "Max Wind Speed (m/s)": data["daily"]["windspeed_10m_max"][i]
+                    }
+
+                    # Skip if any NaNs are present
+                    if pd.isna(list(row.values())).any():
+                        continue
+
+                    if row["Date"] not in collected_dates:
+                        collected_data.append(row)
+                        collected_dates.add(row["Date"])
+
+            current_day -= timedelta(days=1)
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}. Retrying in 60 seconds...")
+            time.sleep(60)
+
+    full_df = pd.DataFrame(collected_data).sort_values(by="Date").reset_index(drop=True)
+    return full_df
+
+def fetch_weather_for_date(latitude, longitude, date):
+    base_url = "https://archive-api.open-meteo.com/v1/archive"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "start_date": date,
+        "end_date": date,
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max",
+        "timezone": "auto"
+    }
+
+    while True:
+        try:
+            response = requests.get(base_url, params=params)
+            if response.status_code == 429:
+                print("Rate limit hit. Waiting 60 seconds...")
+                time.sleep(60)
+                continue
+            response.raise_for_status()
+            data = response.json()
+
+            if "daily" in data and "time" in data["daily"]:
+                return pd.DataFrame({
+                    "Date": pd.to_datetime(data["daily"]["time"]),
+                    "Max Temperature (°C)": data["daily"]["temperature_2m_max"],
+                    "Min Temperature (°C)": data["daily"]["temperature_2m_min"],
+                    "Total Rainfall (mm)": data["daily"]["precipitation_sum"],
+                    "Max Wind Speed (m/s)": data["daily"]["windspeed_10m_max"]
+                })
+            else:
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}. Retrying...")
+            time.sleep(60)
+
+
+def rainfall_category_to_mm(category):
+    if category == 0:
+        return 0.0
+    elif category == 1:
+        return round(np.random.exponential(scale=1.5), 2) % 5
+    elif category == 2:
+        value = 5 + np.random.exponential(scale=3)
+        return round(min(value, 19.99), 2)
+    elif category == 3:
+        value = 20 + np.random.exponential(scale=15)
+        return round(min(value, 199.99), 2)
+
+
+def create_single_lagged_tuple(df):
+    if len(df) != 7:
+        raise ValueError("Expected exactly 7 rows of input")
+
+    last_day = df.iloc[-1]
+    day_of_week = last_day['Date'].dayofweek
+    sin_day = np.sin(2 * np.pi * day_of_week / 7)
+    cos_day = np.cos(2 * np.pi * day_of_week / 7)
+
+    lagged_block = df[[
+        "Max Temperature (°C)", 
+        "Min Temperature (°C)", 
+        "Total Rainfall (mm)", 
+        "Max Wind Speed (m/s)"
+    ]].values.flatten()
+
+    return np.concatenate([lagged_block, [sin_day, cos_day]])
+
+
+from tensorflow.keras.models import load_model
+import joblib
+import numpy as np
+import pandas as pd
+from datetime import datetime, timedelta
+
+def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_days):
+    model = load_model(model_path, compile=False)
+    scaler = joblib.load(scaler_path)
+
+    df = get_historical_weather(latitude, longitude)
+    print("Initial data:", df)
+
+    history = []
+
+    for step in range(n_days):
+        # Prepare input features
+        X_raw = create_single_lagged_tuple(df).reshape(1, -1)
+        X_scaled = scaler.transform(X_raw)
+
+        # Predict
+        reg_output, class_output = model.predict(X_scaled, verbose=0)
+        max_temp, min_temp, wind_speed = reg_output[0]
+
+        # Rainfall prediction
+        rainfall_class = np.argmax(class_output[0])
+        rainfall_mm = rainfall_category_to_mm(rainfall_class)
+
+        # Prediction date = today + step
+        next_date = datetime.today().date() + timedelta(days=step)
+
+        # Store result
+        history.append({
+            "Prediction Date": next_date,
+            "Predicted Max Temp (°C)": round(max_temp, 2),
+            "Predicted Min Temp (°C)": round(min_temp, 2),
+            "Predicted Rainfall (mm)": round(rainfall_mm, 2),
+            "Predicted Wind Speed (m/s)": round(wind_speed, 2),
+            "Rainfall Category": ["No Rain", "Light Rain", "Moderate Rain", "Heavy Rain"][rainfall_class]
+        })
+
+        # Simulate next day in place of real API data
+        simulated_row = {
+            "Date": pd.to_datetime(next_date),
+            "Max Temperature (°C)": max_temp,
+            "Min Temperature (°C)": min_temp,
+            "Total Rainfall (mm)": rainfall_mm,
+            "Max Wind Speed (m/s)": wind_speed
+        }
+
+        df = pd.concat([df.iloc[1:], pd.DataFrame([simulated_row])], ignore_index=True)
+
+    return pd.DataFrame(history)
+
 
 def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_time, num_hours):
     """
