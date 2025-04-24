@@ -282,7 +282,7 @@ def create_single_lagged_tuple(df):
     return np.concatenate([lagged_block, [sin_day, cos_day]])
 
 
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model  # type: ignore
 import joblib
 import numpy as np
 import pandas as pd
