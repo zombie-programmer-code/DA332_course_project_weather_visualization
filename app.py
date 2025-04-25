@@ -269,8 +269,6 @@ def create_single_lagged_tuple(df):
 
     last_day = df.iloc[-1]
     day_of_week = last_day['Date'].dayofweek
-    sin_day = np.sin(2 * np.pi * day_of_week / 7)
-    cos_day = np.cos(2 * np.pi * day_of_week / 7)
 
     lagged_block = df[[
         "Max Temperature (°C)", 
@@ -279,7 +277,7 @@ def create_single_lagged_tuple(df):
         "Max Wind Speed (m/s)"
     ]].values.flatten()
 
-    return np.concatenate([lagged_block, [sin_day, cos_day]])
+    return np.concatenate([lagged_block])
 
 
 from tensorflow.keras.models import load_model  # type: ignore
@@ -301,7 +299,7 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
         # Prepare input features
         X_raw = create_single_lagged_tuple(df).reshape(1, -1)
         X_scaled = scaler.transform(X_raw)
-
+        X_scaled = X_scaled.reshape(1, 7, 4)
         # Predict
         reg_output, class_output = model.predict(X_scaled, verbose=0)
         max_temp, min_temp, wind_speed = reg_output[0]
