@@ -305,6 +305,7 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
         # Predict
         reg_output, class_output = model.predict(X_scaled, verbose=0)
         max_temp, min_temp, wind_speed = reg_output[0]
+        wind_speed = np.clip(wind_speed, 0, None)
 
         # Rainfall prediction
         rainfall_class = np.argmax(class_output[0])
