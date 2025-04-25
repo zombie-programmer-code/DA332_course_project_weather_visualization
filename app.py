@@ -679,12 +679,20 @@ def forecasts():
     if request.method == 'POST':
         city = request.form['city'].strip()
         days = int(request.form['days'])
-
+        country = ''
+        if city in city_names:
+            country = 'India'
+        else:
+            country = 'Other'
         # Get latitude and longitude for the city
         lat, lon = get_lat_lon(city)
 
         # Generate predictions
-        pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days)
+        if(country=='India'):
+            pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days)
+
+        else:
+            pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model_other.keras", "models/x_scaler_other.pkl", days)
         pred_df = round_prediction_df(pred_df)
         pd.set_option("display.precision", 1)
 
