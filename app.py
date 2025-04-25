@@ -688,10 +688,10 @@ def forecasts():
 
         # Generate predictions
         if(country=='India'):
-            pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days)
+            pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days+1)
 
         else:
-            pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model_other.keras", "models/x_scaler_other.pkl", days)
+            pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model_other.keras", "models/x_scaler_other.pkl", days+1)
         pred_df = round_prediction_df(pred_df)
         pd.set_option("display.precision", 1)
 
