@@ -25,5 +25,34 @@ Forecast Results
             Back
         </a>
     </div>
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Cities (within 500 km) of {{ city }}</h4>
+        {% if nearby_cities %}
+            <ul style="list-style: none; padding: 0;">
+                {% for nearby_city, country, distance in nearby_cities %}
+                    <li style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span>
+                            {{ nearby_city }}, {{ country }} - {{ distance }} km
+                        </span>
+                        <!-- Form to get forecasts for the nearby city -->
+                        <form method="POST" action="/forecasts" style="margin: 0;">
+                            <input type="hidden" name="city" value="{{ nearby_city }}">
+                            <input type="hidden" name="days" value="3">
+                            <button type="submit" class="btn btn-sm btn-primary" style="padding: 5px 10px; font-size: 0.9rem;">
+                                Get 3-Day Forecast
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No nearby cities found within the specified radius.</p>
+        {% endif %}
+    </div>
+    
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Map of Nearby Cities</h4>
+        {{ map_html|safe }}
+    </div>
 </div>
 {% endblock %}

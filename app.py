@@ -683,13 +683,15 @@ def forecasts():
             country = 'India'
         else:
             country = 'Other'
+
         # Get latitude and longitude for the city
         lat, lon = get_lat_lon(city)
+        if lat is None or lon is None:
+            return render_template('forecasts.html', error=f"Could not fetch coordinates for {city}.")
 
         # Generate predictions
-        if(country=='India'):
+        if country == 'India':
             pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days+1)
-
         else:
             pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model_other.keras", "models/x_scaler_other.pkl", days+1)
         pred_df = round_prediction_df(pred_df)
@@ -698,8 +700,51 @@ def forecasts():
         # Convert the DataFrame to an HTML table
         pred_table_html = pred_df.to_html(classes='table table-striped table-bordered', index=False)
 
+        # Find nearby cities within a 500 km radius
+        world_cities = pd.read_csv('data/world_cities_lat_long.csv')  # Ensure the file is in the correct path
+        nearby_cities = []
+        map_data = [{'city': city, 'lat': lat, 'lon': lon, 'type': 'Requested City', 'distance': 0}]  # Add the requested city
+        for _, row in world_cities.iterrows():
+            other_city = row['city']
+            other_country = row['country']
+            other_lat = row['latitude']
+            other_lon = row['longitude']
+            if city != other_city:
+                distance = haversine(lat, lon, other_lat, other_lon)
+                if distance <= 500:  # Restrict radius to 500 km
+                    nearby_cities.append((other_city, other_country, round(distance, 2)))  # Add city, country, and distance
+                    map_data.append({'city': other_city, 'lat': other_lat, 'lon': other_lon, 'type': 'Nearby City', 'distance': round(distance, 2)})
+
+        nearby_cities = sorted(nearby_cities, key=lambda x: x[2])
+
+        # Create a map with the requested city and nearby cities
+        map_df = pd.DataFrame(map_data)
+        fig = px.scatter_mapbox(
+            map_df,
+            lat='lat',
+            lon='lon',
+            hover_name='city',
+            hover_data=['distance'],
+            color='type',
+            title=f"Requested City and Nearby Cities (500 km radius)",
+            color_discrete_map={'Requested City': 'red', 'Nearby City': 'blue'},
+            size=[10 if t == 'Requested City' else 5 for t in map_df['type']],  # Larger size for the requested city
+        )
+        fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': lat, 'lon': lon})
+        fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
+
+        # Convert the map to HTML
+        map_html = fig.to_html(full_html=False)
+
         # Render the results page
-        return render_template('forecast_results.html', city=city, days=days, pred_table_html=pred_table_html)
+        return render_template(
+            'forecast_results.html',
+            city=city,
+            days=days,
+            pred_table_html=pred_table_html,
+            nearby_cities=nearby_cities,
+            map_html=map_html
+        )
 
     # Render the form for GET requests
     return render_template('forecasts.html')
