@@ -26,6 +26,10 @@ Forecast Results
         </a>
     </div>
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Map of Nearby Cities</h4>
+        {{ map_html|safe }}
+    </div>
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <h4 class="mb-3" style="font-weight: bold;">Cities (within 500 km) of {{ city }}</h4>
         {% if nearby_cities %}
             <ul style="list-style: none; padding: 0;">
@@ -50,9 +54,6 @@ Forecast Results
         {% endif %}
     </div>
     
-    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h4 class="mb-3" style="font-weight: bold;">Map of Nearby Cities</h4>
-        {{ map_html|safe }}
-    </div>
+    
 </div>
 {% endblock %}

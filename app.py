@@ -300,6 +300,7 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
         X_raw = create_single_lagged_tuple(df).reshape(1, -1)
         X_scaled = scaler.transform(X_raw)
         X_scaled = X_scaled.reshape(1, 7, 4)
+
         # Predict
         reg_output, class_output = model.predict(X_scaled, verbose=0)
         max_temp, min_temp, wind_speed = reg_output[0]
@@ -309,6 +310,9 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
         rainfall_class = np.argmax(class_output[0])
         rainfall_mm = rainfall_category_to_mm(rainfall_class)
 
+        # Round rainfall to the nearest 0.1 mm
+        rainfall_mm = round(rainfall_mm * 10) / 10
+
         # Prediction date = today + step
         next_date = datetime.today().date() + timedelta(days=step)
 
@@ -317,8 +321,8 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
             "Prediction Date": next_date,
             "Predicted Max Temp (°C)": round(max_temp, 2),
             "Predicted Min Temp (°C)": round(min_temp, 2),
-            "Predicted Rainfall (mm)": round(rainfall_mm, 2),
-            "Predicted Wind Speed (m/s)": round(wind_speed, 2),
+            "Predicted Rainfall (mm)": rainfall_mm,
+            "Predicted Max Wind Speed (m/s)": round(wind_speed, 2),
             "Rainfall Category": ["No Rain", "Light Rain", "Moderate Rain", "Heavy Rain"][rainfall_class]
         })
 
