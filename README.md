@@ -86,22 +86,32 @@ DA332_course_project_weather_visualization/
    git clone https://github.com/zombie-programmer-code/DA332_course_project_weather_visualization
    cd DA332_course_project_weather_visualization
    ```
-2. **Installation of dependencies**
-```bash
-  pip install -r requirements.txt
-```
-3. **Prepare data & models**
 
-Place all *_weather.csv files in data/ directory. 
-Ensure combined_weather_data.csv, mapping CSVs, and region_month_stats.csv are present
-Put Keras model files and scaler .pkl files in models/ directory
+2. **Install dependencies**  
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-4. **Run the application**
-```bash
-flask run
-```
-5. **Open in browser**
-```bash
-http://127.0.0.1:5000
-```
+3. **Prepare data & models**  
+   Make sure the following files are placed correctly:
+   - Place all `*_weather.csv` files inside the `data/` directory.
+   - Ensure these files are present in `data/`:
+     - `combined_weather_data.csv`  
+     - `world_cities_lat_long.csv`  
+     - `world_cities_map.csv`  
+     - `region_month_stats.csv`
+   - Place the following in the `models/` directory:
+     - `weather_predictor_model.keras`  
+     - `weather_predictor_model_other.keras`  
+     - `x_scaler.pkl`  
+     - `x_scaler_other.pkl`
+
+4. **Run the application**  
+   ```bash
+   flask run
+   ```
+
+5. **Open in your browser**  
+   [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
 
