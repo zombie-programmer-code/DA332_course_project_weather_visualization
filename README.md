@@ -1,4 +1,4 @@
-# 🌦️ Weather Vista
+# Weather Vista
 
 A Flask‑based web application delivering **real‑time**, **forecast**, and **historical** weather insights for hundreds of cities worldwide. It combines machine‑learning models, interactive Plotly/Mapbox maps, and a SQLite backend to provide rich visualizations and data‑driven forecasts.
 
