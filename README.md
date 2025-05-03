@@ -18,8 +18,6 @@ A Flask‑based web application delivering **real‑time**, **forecast**, and **
   - If latest data is already available in the database, it is rendered immediately else the API calls have to be made, which may take a few minutes. Weather data is updated every 1 hour.
 - **Nationwide Live Weather Map**  
   - Produces a Scatter‑Mapbox of the major cities of the requested country showing temperature, humidity, cloud cover, precipitation, local time, sunrise/sunset and weather emojis(clear, cloudy, rainy) visible on hovering over the city.
-- **Leaflet.js India weather visualization**
-  - An interactive Leaflet map visualizing temperature distribution across India, with a heatmap overlay and geo-boundary outlines. Generated using Python’s folium library and rendered as a standalone HTML file.
 - **Leaflet World Weather Map**
   - A standalone interactive Leaflet map displaying real-time temperature, cloud, wind, and precipitation overlays using OpenWeatherMap tiles. Includes city search with autocomplete and live temperature popups on map clicks. 
 - **Weather analysis for India**
@@ -81,7 +79,7 @@ DA332_course_project_weather_visualization/
 
 ---
 
-## ▶Installation & Setup
+## Installation & Setup
 
 1. **Clone the repository**  
    ```bash
