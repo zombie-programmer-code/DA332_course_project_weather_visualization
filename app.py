@@ -139,13 +139,7 @@ def convert_utc_to_local(dt_utc, lat, lon):
     
     dt_local = dt_utc.astimezone(local_tz)
     return dt_local
-import requests
-import pandas as pd
-import time
 
-import requests
-import pandas as pd
-import time
 from datetime import datetime, timedelta
 
 def get_historical_weather(latitude, longitude):
@@ -275,9 +269,6 @@ def create_single_lagged_tuple(df):
 
 from tensorflow.keras.models import load_model  # type: ignore
 import joblib
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
 
 def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_days):
     model = load_model(model_path, compile=False)
