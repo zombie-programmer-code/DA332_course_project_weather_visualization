@@ -237,21 +237,55 @@ Welcome to Weather Visualization!
 
 <script>
     document.addEventListener('mousemove', function(e) {
-      const cards = document.querySelectorAll('.interactive-card');
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-    
-      cards.forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const cardX = rect.left + rect.width / 2;
-        const cardY = rect.top + rect.height / 2;
-    
-        const angleX = (mouseY - cardY) / 30;
-        const angleY = (cardX - mouseX) / 30;
-    
-        card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(0.95)`;
-      });
+        const cards = document.querySelectorAll('.interactive-card');
+        
+        cards.forEach(card => {
+            // Get card dimensions and position
+            const rect = card.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Calculate distance from mouse to card center
+            const distanceX = e.clientX - centerX;
+            const distanceY = e.clientY - centerY;
+            
+            // Calculate rotation angles with dampening factor
+            const maxRotation = 10; // Maximum rotation in degrees
+            const dampening = 25; // Higher value = less rotation
+            
+            const angleX = Math.max(Math.min((distanceY / dampening), maxRotation), -maxRotation);
+            const angleY = Math.max(Math.min(-(distanceX / dampening), maxRotation), -maxRotation);
+            
+            // Apply smooth transform with enhanced perspective
+            card.style.transform = `
+                perspective(2000px) 
+                rotateX(${angleX}deg) 
+                rotateY(${angleY}deg) 
+                scale(0.98)
+            `;
+        });
     });
-    </script>
+
+    // Reset card position when mouse leaves
+    document.addEventListener('mouseleave', function() {
+        const cards = document.querySelectorAll('.interactive-card');
+        cards.forEach(card => {
+            card.style.transform = 'perspective(2000px) rotateX(0) rotateY(0) scale(0.95)';
+        });
+    });
+</script>
+
+<style>
+    .interactive-card {
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        transform-style: preserve-3d;
+        will-change: transform;
+    }
+
+    .interactive-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+</style>
     
 {% endblock %}
