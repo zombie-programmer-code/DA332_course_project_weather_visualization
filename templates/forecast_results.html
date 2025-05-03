@@ -16,9 +16,25 @@ Forecast Results
     <!-- Predictions Table -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <h4 class="mb-3" style="font-weight: bold;">Forecast Data</h4>
-        {{ pred_table_html|safe }}
+        {{ table_html|safe }}
     </div>
+    <!-- Temperature Plot -->
+<div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <h4 class="mb-3" style="font-weight: bold;">Temperature Trends</h4>
+    {{ temp_plot_html|safe }}
+</div>
 
+<!-- Rainfall Plot -->
+<div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <h4 class="mb-3" style="font-weight: bold;">Rainfall Trends</h4>
+    {{ rainfall_plot_html|safe }}
+</div>
+
+<!-- Wind Speed Plot -->
+<div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <h4 class="mb-3" style="font-weight: bold;">Wind Speed Trends</h4>
+    {{ wind_plot_html|safe }}
+</div>
     <!-- Back Button -->
     <div class="text-center mt-4">
         <a href="/forecasts" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;">

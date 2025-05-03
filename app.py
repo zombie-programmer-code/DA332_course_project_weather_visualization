@@ -698,11 +698,62 @@ def forecasts():
             pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model.keras", "models/x_scaler.pkl", days+1)
         else:
             pred_df = rolling_weather_prediction(lat, lon, "models/weather_predictor_model_other.keras", "models/x_scaler_other.pkl", days+1)
-        pred_df = round_prediction_df(pred_df)
-        pd.set_option("display.precision", 1)
+        pred_df = pred_df.round(1)
 
-        # Convert the DataFrame to an HTML table
-        pred_table_html = pred_df.to_html(classes='table table-striped table-bordered', index=False)
+        pd.set_option("display.precision", 1)
+        import plotly.graph_objects as go
+        formatted_cells = [
+            pred_df[col].map(lambda x: f"{x:.1f}") if pd.api.types.is_numeric_dtype(pred_df[col]) else pred_df[col]
+            for col in pred_df.columns
+        ]
+
+        table_fig = go.Figure(data=[go.Table(
+            header=dict(
+                values=list(pred_df.columns),
+                fill_color='paleturquoise',
+                align='left',
+                font=dict(size=16),  # Increase font size for the header
+                height=40  # Increase header height
+            ),
+            cells=dict(
+                values=formatted_cells,
+                fill_color='lavender',
+                align='left',
+                font=dict(size=14),  # Increase font size for the cells
+                height=30  # Increase cell height
+            )
+        )])
+
+        table_html = table_fig.to_html(full_html=False)
+        # Plot 1: Temperature Trends
+        temp_fig = px.line(
+            pred_df,
+            x='Prediction Date',
+            y=['Predicted Max Temp (°C)', 'Predicted Min Temp (°C)'],
+            labels={'value': 'Temperature (°C)', 'variable': 'Metric'},
+            title=f"Temperature Trends for {city} (Next {days} Days)"
+        )
+        temp_plot_html = temp_fig.to_html(full_html=False)
+
+        # Plot 2: Rainfall Trends
+        rainfall_fig = px.bar(
+            pred_df,
+            x='Prediction Date',
+            y='Predicted Rainfall (mm)',
+            labels={'Predicted Rainfall (mm)': 'Rainfall (mm)'},
+            title=f"Rainfall Trends for {city} (Next {days} Days)"
+        )
+        rainfall_plot_html = rainfall_fig.to_html(full_html=False)
+
+        # Plot 3: Wind Speed Trends
+        wind_fig = px.line(
+            pred_df,
+            x='Prediction Date',
+            y='Predicted Max Wind Speed (m/s)',
+            labels={'Predicted Max Wind Speed (m/s)': 'Wind Speed (m/s)'},
+            title=f"Wind Speed Trends for {city} (Next {days} Days)"
+        )
+        wind_plot_html = wind_fig.to_html(full_html=False)
 
         # Find nearby cities within a 500 km radius
         world_cities = pd.read_csv('data/world_cities_lat_long.csv')  # Ensure the file is in the correct path
@@ -745,7 +796,10 @@ def forecasts():
             'forecast_results.html',
             city=city,
             days=days,
-            pred_table_html=pred_table_html,
+            table_html=table_html,
+            temp_plot_html=temp_plot_html,
+            rainfall_plot_html=rainfall_plot_html,
+            wind_plot_html=wind_plot_html,
             nearby_cities=nearby_cities,
             map_html=map_html
         )
@@ -1328,18 +1382,60 @@ def global_weather_analysis():
     # Load the dataset
     df_all = pd.read_csv('data/combined_weather_data.csv')
 
+    # Map numeric months to month names
+    month_mapping = {
+        1: "January", 2: "February", 3: "March", 4: "April",
+        5: "May", 6: "June", 7: "July", 8: "August",
+        9: "September", 10: "October", 11: "November", 12: "December"
+    }
+
     # 1. Average temperature by continent
-    continent_avg_temp = df_all.groupby('Continent')[['Max Temperature (°C)', 'Min Temperature (°C)']].mean()
+    continent_avg_temp = df_all.groupby('Continent')[['Max Temperature (°C)', 'Min Temperature (°C)']].mean().reset_index()
+    fig5 = px.bar(
+        continent_avg_temp,
+        x='Continent',
+        y=['Max Temperature (°C)', 'Min Temperature (°C)'],
+        barmode='group',
+        title="Average Max and Min Temperatures by Continent",
+        labels={'value': 'Temperature (°C)', 'variable': 'Metric'}
+    )
+    fig5_html = fig5.to_html(full_html=False)
 
     # 2. Total rainfall by country
-    country_total_rain = df_all.groupby('Country')['Total Rainfall (mm)'].sum()
+    country_total_rain = df_all.groupby('Country')['Total Rainfall (mm)'].sum().reset_index()
+    fig6 = px.choropleth(
+        country_total_rain,
+        locations='Country',
+        locationmode='country names',
+        color='Total Rainfall (mm)',
+        title="Total Rainfall by Country",
+        color_continuous_scale='Blues'
+    )
+    fig6_html = fig6.to_html(full_html=False)
 
     # 3. Monthly wind speed by continent
     monthly_wind = df_all.groupby(['Continent', 'Month'])['Max Wind Speed (m/s)'].mean().reset_index()
+    monthly_wind['Month'] = monthly_wind['Month'].map(month_mapping)  # Map numeric months to names
+    fig7 = px.line(
+        monthly_wind,
+        x='Month',
+        y='Max Wind Speed (m/s)',
+        color='Continent',
+        title="Monthly Average Wind Speed by Continent",
+        labels={'Max Wind Speed (m/s)': 'Wind Speed (m/s)'}
+    )
+    fig7_html = fig7.to_html(full_html=False)
 
     # Plot 1: Monthly avg temperature by continent
     monthly_temp = df_all.groupby(['Continent', 'Month'])[['Max Temperature (°C)', 'Min Temperature (°C)']].mean().reset_index()
-    fig1 = px.line(monthly_temp, x="Month", y="Max Temperature (°C)", color="Continent", title="Monthly Max Temperature by Continent")
+    monthly_temp['Month'] = monthly_temp['Month'].map(month_mapping)  # Map numeric months to names
+    fig1 = px.line(
+        monthly_temp,
+        x="Month",
+        y="Max Temperature (°C)",
+        color="Continent",
+        title="Monthly Max Temperature by Continent"
+    )
     fig1_html = fig1.to_html(full_html=False)
 
     # Plot 2: Rainfall box plot by country
@@ -1349,6 +1445,7 @@ def global_weather_analysis():
     # Plot 3: Correlation heatmap
     numerics = ['Max Temperature (°C)', 'Min Temperature (°C)', 'Total Rainfall (mm)', 'Max Wind Speed (m/s)']
     corr = df_all[numerics].corr()
+    corr = corr.round(2)
     fig3 = ff.create_annotated_heatmap(
         z=corr.values,
         x=list(corr.columns),
@@ -1358,42 +1455,59 @@ def global_weather_analysis():
     )
     fig3.update_layout(title="Correlation Heatmap")
     fig3_html = fig3.to_html(full_html=False)
+
+        # Find hottest cities per continent per month
     monthly_city_temp = df_all.groupby(['Continent', 'Month', 'City'])['Max Temperature (°C)'].mean().reset_index()
 
-    # Find hottest cities per continent per month
+    # Map numeric months to month names
+    monthly_city_temp['Month'] = monthly_city_temp['Month'].map(month_mapping)
+
+    # Sort the data by months using the month_mapping order
+    month_order = list(month_mapping.values())
+    monthly_city_temp['Month'] = pd.Categorical(monthly_city_temp['Month'], categories=month_order, ordered=True)
+
+    # Find the hottest cities per continent per month
     hottest = monthly_city_temp.loc[monthly_city_temp.groupby(['Continent', 'Month'])['Max Temperature (°C)'].idxmax()]
-    hottest['Type'] = 'Hottest'
+    month_order = list(month_mapping.values())
+    hottest['Month'] = pd.Categorical(hottest['Month'], categories=month_order, ordered=True)
+    hottest = hottest.sort_values(['Continent', 'Month'])
 
-    # Find coldest cities per continent per month
-    coldest = monthly_city_temp.loc[monthly_city_temp.groupby(['Continent', 'Month'])['Max Temperature (°C)'].idxmin()]
-    coldest['Type'] = 'Coldest'
-
-    # Combine and show
-    extremes = pd.concat([hottest, coldest], ignore_index=True).sort_values(['Continent', 'Month', 'Type'])
-    
     fig4 = px.bar(
-    extremes,
+    hottest,
     x='Month',
     y='Max Temperature (°C)',
-    color='Type',
-    barmode='group',
-    facet_row='Continent',  
-    hover_data=['City'],
-    title='Monthly Max Temperatures: Hottest and Coldest Cities per Continent'
-    )
+    color='City',
+    facet_row='Continent',
+    title='Monthly Max Temperatures: Hottest Cities per Continent',
+    labels={'Max Temperature (°C)': 'Max Temperature (°C)', 'City': 'City'},
+    category_orders={'Month': month_order} 
+)
+
 
     fig4.update_layout(
         xaxis_title="Month",
         yaxis_title="Max Temperature (°C)",
-        height=1000  
+        height=1000,
+        margin=dict(l=50, r=50, t=50, b=50),
+        uniformtext_minsize=8,
+        uniformtext_mode='hide',
     )
+
+    fig4.for_each_yaxis(lambda yaxis: yaxis.update(matches='y'))
+
+
     fig4_html = fig4.to_html(full_html=False)
+
+    # Render the template with all plots
     return render_template(
         'global_weather_analysis.html',
         fig1_html=fig1_html,
         fig2_html=fig2_html,
         fig3_html=fig3_html,
-        fig4_html=fig4_html
+        fig4_html=fig4_html,
+        fig5_html=fig5_html,
+        fig6_html=fig6_html,
+        fig7_html=fig7_html
     )
 
 
