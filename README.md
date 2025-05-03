@@ -27,8 +27,32 @@ A Flask‑based web application delivering **real‑time**, **forecast**, and **
 - **Global Weather Analysis**
   - Visualizes global weather patterns using interactive Plotly charts: temperature trends, rainfall distributions, wind speeds, and more._-
   - Data is grouped by continent, country, and month, with insights like hottest cities and variable correlations.
-<pre lang="markdown"> ## 📁 Project Structure ``` DA332_course_project_weather_visualization/ ├── app.py # Main Flask application ├── data/ # CSV data and precomputed stats │ ├── weather_india/ # Last 10 years daily weather data for 30+ cities in India │ ├── weather_world/ # Last 3 years daily weather data for 80+ cities worldwide │ ├── world_cities_lat_long.csv │ ├── world_cities_map.csv │ └── region_month_stats.csv ├── models/ # Pretrained ML models & scalers │ ├── weather_predictor_model.keras │ ├── weather_predictor_model_other.keras │ ├── x_scaler.pkl │ └── x_scaler_other.pkl ├── templates/ # Jinja2 HTML templates ├── static/ # Images ├── weather.db # SQLite: historical weather data ├── live_weather_map.db # SQLite: live map data ├── live_weather.db # SQLite: live weather data ├── city_lat_long.db # SQLite: city coordinates ├── README.md # Project documentation └── requirements.txt # Project dependencies ``` </pre>
-## Tech Stack
+## 📁 Project Structure
+
+```
+DA332_course_project_weather_visualization/
+├── app.py                         # Main Flask application  
+├── data/                          # CSV data and precomputed stats  
+│   ├── weather_india/             # Last 10 years daily weather data for 30+ cities in India  
+│   ├── weather_world/             # Last 3 years daily weather data for 80+ cities worldwide  
+│   ├── world_cities_lat_long.csv  
+│   ├── world_cities_map.csv  
+│   └── region_month_stats.csv  
+├── models/                        # Pretrained ML models & scalers  
+│   ├── weather_predictor_model.keras  
+│   ├── weather_predictor_model_other.keras  
+│   ├── x_scaler.pkl  
+│   └── x_scaler_other.pkl  
+├── templates/                     # Jinja2 HTML templates  
+├── static/                        # Images  
+├── weather.db                     # SQLite: historical weather data  
+├── live_weather_map.db            # SQLite: live map data  
+├── live_weather.db                # SQLite: live weather data  
+├── city_lat_long.db               # SQLite: city coordinates  
+├── README.md                      # Project documentation  
+└── requirements.txt               # Project dependencies  
+```
+
 
 ### Frontend  
 ![Plotly](https://img.shields.io/badge/Plotly-Express%20%26%20Graph%20Objects-blue?logo=plotly&logoColor=white)  
