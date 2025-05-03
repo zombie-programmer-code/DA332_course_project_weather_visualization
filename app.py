@@ -1320,6 +1320,81 @@ def live_weather():
     # Render the input form
     return render_template('live_weather.html')
 
+import plotly.figure_factory as ff
+import plotly.express as px
+
+@app.route('/global_weather_analysis', methods=['GET'])
+def global_weather_analysis():
+    # Load the dataset
+    df_all = pd.read_csv('data/combined_weather_data.csv')
+
+    # 1. Average temperature by continent
+    continent_avg_temp = df_all.groupby('Continent')[['Max Temperature (°C)', 'Min Temperature (°C)']].mean()
+
+    # 2. Total rainfall by country
+    country_total_rain = df_all.groupby('Country')['Total Rainfall (mm)'].sum()
+
+    # 3. Monthly wind speed by continent
+    monthly_wind = df_all.groupby(['Continent', 'Month'])['Max Wind Speed (m/s)'].mean().reset_index()
+
+    # Plot 1: Monthly avg temperature by continent
+    monthly_temp = df_all.groupby(['Continent', 'Month'])[['Max Temperature (°C)', 'Min Temperature (°C)']].mean().reset_index()
+    fig1 = px.line(monthly_temp, x="Month", y="Max Temperature (°C)", color="Continent", title="Monthly Max Temperature by Continent")
+    fig1_html = fig1.to_html(full_html=False)
+
+    # Plot 2: Rainfall box plot by country
+    fig2 = px.box(df_all, x="Country", y="Total Rainfall (mm)", title="Rainfall Distribution by Country")
+    fig2_html = fig2.to_html(full_html=False)
+
+    # Plot 3: Correlation heatmap
+    numerics = ['Max Temperature (°C)', 'Min Temperature (°C)', 'Total Rainfall (mm)', 'Max Wind Speed (m/s)']
+    corr = df_all[numerics].corr()
+    fig3 = ff.create_annotated_heatmap(
+        z=corr.values,
+        x=list(corr.columns),
+        y=list(corr.index),
+        colorscale='Viridis',
+        showscale=True
+    )
+    fig3.update_layout(title="Correlation Heatmap")
+    fig3_html = fig3.to_html(full_html=False)
+    monthly_city_temp = df_all.groupby(['Continent', 'Month', 'City'])['Max Temperature (°C)'].mean().reset_index()
+
+    # Find hottest cities per continent per month
+    hottest = monthly_city_temp.loc[monthly_city_temp.groupby(['Continent', 'Month'])['Max Temperature (°C)'].idxmax()]
+    hottest['Type'] = 'Hottest'
+
+    # Find coldest cities per continent per month
+    coldest = monthly_city_temp.loc[monthly_city_temp.groupby(['Continent', 'Month'])['Max Temperature (°C)'].idxmin()]
+    coldest['Type'] = 'Coldest'
+
+    # Combine and show
+    extremes = pd.concat([hottest, coldest], ignore_index=True).sort_values(['Continent', 'Month', 'Type'])
+    
+    fig4 = px.bar(
+    extremes,
+    x='Month',
+    y='Max Temperature (°C)',
+    color='Type',
+    barmode='group',
+    facet_row='Continent',  
+    hover_data=['City'],
+    title='Monthly Max Temperatures: Hottest and Coldest Cities per Continent'
+    )
+
+    fig4.update_layout(
+        xaxis_title="Month",
+        yaxis_title="Max Temperature (°C)",
+        height=1000  
+    )
+    fig4_html = fig4.to_html(full_html=False)
+    return render_template(
+        'global_weather_analysis.html',
+        fig1_html=fig1_html,
+        fig2_html=fig2_html,
+        fig3_html=fig3_html,
+        fig4_html=fig4_html
+    )
 
 
 if __name__ == "__main__":

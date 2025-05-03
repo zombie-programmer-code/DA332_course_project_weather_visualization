@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Global Weather Analysis
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="text-center p-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
+        <h1 class="mb-2" style="font-weight: bold;">Global Weather Analysis</h1>
+        <h4 class="text-light mb-2">Insights from Global Weather Data</h4>
+    </div>
+
+    <!-- Plot 1: Monthly Max Temperature by Continent -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Monthly Max Temperature by Continent</h4>
+        {{ fig1_html|safe }}
+    </div>
+
+    <!-- Plot 2: Rainfall Distribution by Country -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Rainfall Distribution by Country</h4>
+        {{ fig2_html|safe }}
+    </div>
+
+    <!-- Plot 3: Correlation Heatmap -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Correlation Heatmap</h4>
+        {{ fig3_html|safe }}
+    </div>
+    <!-- Plot 3: Correlation Heatmap -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Monthly Max Temperatures: Hottest and Coldest Cities per Continent</h4>
+        {{ fig4_html|safe }}
+    </div>
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="/" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;">
+            Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}
