@@ -11,13 +11,13 @@ import joblib
 from math import radians, sin, cos, sqrt, atan2
 
 from datetime import datetime, timedelta
-import time as tm  # Alias the time module to avoid conflicts with datetime.time
+import time as tm 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+matplotlib.use('Agg')  
 import matplotlib.pyplot as plt
 import seaborn as sns
 import io
@@ -63,9 +63,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
 @app.before_request
 def store_csv_in_database():
-    #populate_lat_long_table()
     if not hasattr(app, 'db_initialized'):
-        app.db_initialized = True  # Set a flag to ensure this runs only once
+        app.db_initialized = True  
 
         # Check if the weather_data table exists and is not empty
         table_exists = db.execute("""
@@ -77,7 +76,6 @@ def store_csv_in_database():
                 print("Database already contains data. Skipping data insertion.")
                 return
 
-        # Create the weather_data table if it doesn't exist
         db.execute("""
             CREATE TABLE IF NOT EXISTS weather_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,9 +95,8 @@ def store_csv_in_database():
         for city in city_names:
             print(f"Processing data for {city}...")
             try:
-                # Read the CSV file for the city
                 df = pd.read_csv(f'data/{city}_weather.csv')
-                df['Date'] = pd.to_datetime(df['Date'])  # Ensure the 'Date' column is in datetime format
+                df['Date'] = pd.to_datetime(df['Date']) 
 
                 # Insert data into the weather_data table
                 for _, row in df.iterrows():
@@ -109,7 +106,7 @@ def store_csv_in_database():
                             sunrise_time, sunset_time, daylight_duration, 
                             precipitation_hours, max_wind_speed
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, city,  # Add the city name here
+                    """, city,  
                         row['Date'].strftime('%Y-%m-%d'), 
                         row.get('Max Temperature (°C)', None), 
                         row.get('Min Temperature (°C)', None), 
@@ -137,12 +134,9 @@ def convert_utc_to_local(dt_utc, lat, lon):
 
     local_tz = pytz.timezone(timezone_str)
     
-    # Check if the datetime is naive or already timezone-aware
     if dt_utc.tzinfo is None:
-        # Localize the naive datetime to UTC
         dt_utc = pytz.utc.localize(dt_utc)
     
-    # Convert to local timezone
     dt_local = dt_utc.astimezone(local_tz)
     return dt_local
 import requests
@@ -197,7 +191,6 @@ def get_historical_weather(latitude, longitude):
                         "Max Wind Speed (m/s)": data["daily"]["windspeed_10m_max"][i]
                     }
 
-                    # Skip if any NaNs are present
                     if pd.isna(list(row.values())).any():
                         continue
 
@@ -296,27 +289,21 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
     history = []
 
     for step in range(n_days):
-        # Prepare input features
         X_raw = create_single_lagged_tuple(df).reshape(1, -1)
         X_scaled = scaler.transform(X_raw)
         X_scaled = X_scaled.reshape(1, 7, 4)
 
-        # Predict
         reg_output, class_output = model.predict(X_scaled, verbose=0)
         max_temp, min_temp, wind_speed = reg_output[0]
         wind_speed = np.clip(wind_speed, 0, None)
 
-        # Rainfall prediction
         rainfall_class = np.argmax(class_output[0])
         rainfall_mm = rainfall_category_to_mm(rainfall_class)
 
-        # Round rainfall to the nearest 0.1 mm
         rainfall_mm = round(rainfall_mm * 10) / 10
 
-        # Prediction date = today + step
         next_date = datetime.today().date() + timedelta(days=step)
 
-        # Store result
         history.append({
             "Prediction Date": next_date,
             "Predicted Max Temp (°C)": round(max_temp, 2),
@@ -326,7 +313,6 @@ def rolling_weather_prediction(latitude, longitude, model_path, scaler_path, n_d
             "Rainfall Category": ["No Rain", "Light Rain", "Moderate Rain", "Heavy Rain"][rainfall_class]
         })
 
-        # Simulate next day in place of real API data
         simulated_row = {
             "Date": pd.to_datetime(next_date),
             "Max Temperature (°C)": max_temp,
@@ -354,13 +340,12 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
     Returns:
     - DataFrame: A pandas DataFrame containing the historical weather data.
     """
-    if num_hours > 720:  # WeatherAPI.com allows fetching data up to 30 days (720 hours) in the past
+    if num_hours > 720:  
         raise ValueError("WeatherAPI.com's History API allows fetching data for up to 30 days (720 hours) in the past.")
 
     base_url = "http://api.weatherapi.com/v1/history.json"
     all_data = []
 
-    # Convert UTC time range to local time range
     local_start_time = convert_utc_to_local(start_time, latitude, longitude)
     local_end_time = convert_utc_to_local(end_time, latitude, longitude)
 
@@ -373,7 +358,7 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
             "key": api_key,
             "q": f"{latitude},{longitude}",
             "dt": date_str,
-            "hour": current_time.hour  # Use the local hour
+            "hour": current_time.hour  
         }
 
         while True:
@@ -387,18 +372,15 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
                 response.raise_for_status()
                 data = response.json()
 
-                # Check if forecast data is available
                 forecast_days = data.get("forecast", {}).get("forecastday", [])
                 if not forecast_days:
                     print(f"No forecast data available for {date_str} at location {latitude}, {longitude}. Skipping...")
-                    break  # Skip to the next iteration if no forecast data is available
+                    break  
 
                 for hour_data in forecast_days[0].get("hour", []):
-                    # Parse the local time from the API
                     local_time = datetime.strptime(hour_data["time"], '%Y-%m-%d %H:%M')
 
-                    # Convert local time to UTC for consistency
-                    local_time_zone = pytz.timezone(hour_data.get("tz_id", "UTC"))  # Use the time zone ID from the API if available
+                    local_time_zone = pytz.timezone(hour_data.get("tz_id", "UTC"))  
                     local_time = local_time_zone.localize(local_time)  # Localize the naive datetime
                     utc_time = local_time.astimezone(pytz.utc)  # Convert to UTC
 
@@ -425,10 +407,10 @@ def get_historical_hourly_weather(api_key, latitude, longitude, end_time, start_
 
     if not all_data:
         print(f"No data collected for location {latitude}, {longitude}. Returning an empty DataFrame.")
-        return pd.DataFrame()  # Return an empty DataFrame if no data was collected
+        return pd.DataFrame()  #
 
     df = pd.DataFrame(all_data)
-    # Keep only the last `num_hours` rows
+
     df = df.tail(num_hours).reset_index(drop=True)
 
     return df
@@ -473,9 +455,8 @@ def round_prediction_df(df, decimal_places=2):
 
 def populate_lat_long_table():
     if not hasattr(app, 'db_initialized'):
-        app.db_initialized = True  # Set a flag to ensure this runs only once
+        app.db_initialized = True  
 
-        # Check if the weather_data table exists and is not empty
         table_exists = db2.execute("""
             SELECT name FROM sqlite_master WHERE type='table' AND name='city_lat_long'
         """)
@@ -498,13 +479,11 @@ def populate_lat_long_table():
         for city in city_names:
             print(f"Processing data for {city}...")
             try:
-                # Get lat/lon
                 lat, lon = get_lat_lon(city)
                 if lat is None or lon is None:
                     print(f"Could not fetch coordinates for {city}.")
                     continue
 
-                # Insert data into the city_lat_long table
                 db2.execute("""
                     INSERT INTO city_lat_long (city, latitude, longitude) VALUES (?, ?, ?)
                 """, city, lat, lon)
@@ -512,7 +491,6 @@ def populate_lat_long_table():
                 print(f"Error processing {city}: {e}")
 
 
-# Define the route for the homepage
 @app.route('/')
 def index():
     return render_template('home.html')
@@ -521,7 +499,6 @@ def index():
 @app.route('/check_status')
 def check_status():
     page = request.args.get('page', '')
-    # Check if the page is ready in the session
     is_ready = session.get(f'{page}_ready', True)
     return jsonify({'ready': is_ready})
     
@@ -531,22 +508,18 @@ def historical_trends():
     
     if request.method == 'POST':
         
-        # Line plot inputs
         line_cities = request.form.getlist('line_cities')
         line_from_year = int(request.form['line_from_year'])
         line_to_year = int(request.form['line_to_year'])
         line_variables = request.form.getlist('line_variables')
 
-        # Box plot inputs
         box_cities = request.form.getlist('box_cities')
         box_variable = request.form['box_variable']
 
-        # Handle grouped "temperature" option for line plot
         if "temperature" in line_variables:
             line_variables.remove("temperature")
             line_variables.extend(["max_temperature", "min_temperature"])
 
-        # Query the database for line plot
         line_query = f"""
             SELECT city, date, {', '.join(line_variables)}
             FROM weather_data
@@ -556,7 +529,6 @@ def historical_trends():
         line_rows = db.execute(line_query, *line_cities, str(line_from_year), str(line_to_year))
         line_df = pd.DataFrame(line_rows)
 
-        # Query the database for box plot
         box_query = f"""
             SELECT city, date, {box_variable}
             FROM weather_data
@@ -565,11 +537,9 @@ def historical_trends():
         box_rows = db.execute(box_query, *box_cities)
         box_df = pd.DataFrame(box_rows)
 
-        # Check for empty data
         if line_df.empty and box_df.empty:
             return render_template('historical_trends.html', city_names=city_names, error="No data found for the selected cities and year range.")
 
-        # Generate the line plot
         line_fig = px.line(
             line_df,
             x='date',
@@ -579,7 +549,6 @@ def historical_trends():
             title=f"Weather Trends (Line Plot) for {', '.join(line_cities)} ({line_from_year} - {line_to_year})"
         )
 
-        # Generate the box plot
         box_fig = px.box(
             box_df,
             x='city',
@@ -589,10 +558,8 @@ def historical_trends():
             title=f"Box Plot for {box_variable} in {', '.join(box_cities)}"
         )
 
-        # Convert the plots to HTML
         line_plot_html = line_fig.to_html(full_html=False)
         box_plot_html = box_fig.to_html(full_html=False)
-        # Render the plots in the HTML template
         return render_template(
             'historical_trends_plot.html',
             line_plot_html=line_plot_html,
@@ -600,16 +567,13 @@ def historical_trends():
         )
         
 
-    # Render the form if the request method is GET
     return render_template('historical_trends.html', city_names=city_names)
 
 @app.route('/view_pre_generated_statistics', methods=['GET'])
 def view_pre_generated_statistics():
-    # If the loading flag is not complete, render the suspense page.
     if request.args.get('loading') != 'complete':
         return render_template('suspense_fast.html', destination='view_pre_generated_statistics')
     
-    # Otherwise (loading is complete), continue to build the plots.
     region_month_stats = pd.read_csv('data/region_month_stats.csv')
     print("work in progress")
     
@@ -669,7 +633,6 @@ def view_pre_generated_statistics():
     rain_fig.update_layout(height=600)
     rain_plot_html = rain_fig.to_html(full_html=False)
 
-    # Render the final template with the plots.
     return render_template(
         'historical_statistics.html',
         max_plot_html=max_plot_html,
@@ -688,7 +651,6 @@ def forecasts():
         else:
             country = 'Other'
 
-        # Get latitude and longitude for the city
         lat, lon = get_lat_lon(city)
         if lat is None or lon is None:
             return render_template('forecasts.html', error=f"Could not fetch coordinates for {city}.")
@@ -712,15 +674,15 @@ def forecasts():
                 values=list(pred_df.columns),
                 fill_color='paleturquoise',
                 align='left',
-                font=dict(size=16),  # Increase font size for the header
-                height=40  # Increase header height
+                font=dict(size=16),  
+                height=40  
             ),
             cells=dict(
                 values=formatted_cells,
                 fill_color='lavender',
                 align='left',
-                font=dict(size=14),  # Increase font size for the cells
-                height=30  # Increase cell height
+                font=dict(size=14),  
+                height=30  
             )
         )])
 
@@ -756,7 +718,7 @@ def forecasts():
         wind_plot_html = wind_fig.to_html(full_html=False)
 
         # Find nearby cities within a 500 km radius
-        world_cities = pd.read_csv('data/world_cities_lat_long.csv')  # Ensure the file is in the correct path
+        world_cities = pd.read_csv('data/world_cities_lat_long.csv') 
         nearby_cities = []
         map_data = [{'city': city, 'lat': lat, 'lon': lon, 'type': 'Requested City', 'distance': 0}]  # Add the requested city
         for _, row in world_cities.iterrows():
@@ -772,7 +734,6 @@ def forecasts():
 
         nearby_cities = sorted(nearby_cities, key=lambda x: x[2])
 
-        # Create a map with the requested city and nearby cities
         map_df = pd.DataFrame(map_data)
         fig = px.scatter_mapbox(
             map_df,
@@ -788,10 +749,8 @@ def forecasts():
         fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': lat, 'lon': lon})
         fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
 
-        # Convert the map to HTML
         map_html = fig.to_html(full_html=False)
 
-        # Render the results page
         return render_template(
             'forecast_results.html',
             city=city,
@@ -804,26 +763,22 @@ def forecasts():
             map_html=map_html
         )
 
-    # Render the form for GET requests
     return render_template('forecasts.html')
 
 @app.route('/Temperature_today')
 def today():
-    # Logic for temperature today
     if request.args.get('loading') != 'complete':
         return render_template('suspense_fast.html', destination='Temperature_today')
     return render_template('Today.html')
 
 @app.route('/Live-Weather-Map')
 def map():
-    # Logic for temperature today
     if request.args.get('loading') != 'complete':
         return render_template('suspense_fast.html', destination='Live-Weather-Map')
     return render_template('map.html')
 
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
-    # Load the world_cities_lat_long file
     world_cities = pd.read_csv('data/world_cities_lat_long.csv')
 
     # Get the query parameter
@@ -832,7 +787,6 @@ def autocomplete():
     # Filter city names that match the query
     suggestions = world_cities[world_cities['city'].str.lower().str.startswith(query)]['city'].unique()
 
-    # Return the suggestions as a JSON response
     return jsonify(list(suggestions))
 
 def get_sunrise_sunset_times(lat, lon):
@@ -843,7 +797,7 @@ def get_sunrise_sunset_times(lat, lon):
     params = {
         "lat": lat,
         "lng": lon,
-        "formatted": 0  # Use ISO 8601 format for easier parsing
+        "formatted": 0  
     }
     response = requests.get(url, params=params)
     response.raise_for_status()
@@ -875,7 +829,6 @@ def live_weather_map():
         )
     """)
     flag = 0
-    # Load the world_cities_lat_long file
     selected_cities = pd.read_csv('data/world_cities_map.csv')
 
     # Prepare data for the map
@@ -891,7 +844,6 @@ def live_weather_map():
 
         current_utc_time_str = current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
 
-        # Use the formatted string in the query
         existing_data = db1.execute(
             "SELECT * FROM weather_map_data WHERE city = ? AND utc_time = ?",
             city, current_utc_time_str
@@ -902,10 +854,8 @@ def live_weather_map():
             local_time = convert_utc_to_local(current_utc_time, lat, lon)
 
             # Fetch sunrise and sunset times
-            #sunrise, sunset = get_sunrise_sunset_times(lat, lon)
             sunrise = existing_data[0]['sunrise']
             sunset = existing_data[0]['sunset']
-            # Convert sunrise and sunset to datetime objects
             sunrise = datetime.strptime(sunrise, '%Y-%m-%d %H:%M:%S')
             sunset = datetime.strptime(sunset, '%Y-%m-%d %H:%M:%S')
 
@@ -940,7 +890,6 @@ def live_weather_map():
                 api_key_weather, lat, lon, current_utc_time, current_utc_time - timedelta(hours=1), 1
             )
             if not weather_data.empty:
-                # Extract the first row of weather data
                 weather_row = weather_data.iloc[0]
                 temperature = weather_row['Temperature (°C)']
                 feels_like = weather_row['Feels Like (°C)']
@@ -996,7 +945,6 @@ def live_weather_map():
     # Convert to DataFrame
     map_df = pd.DataFrame(map_data)
     print(map_df)
-    # Generate the map
     if flag == 1:
         import plotly.express as px
         fig = px.scatter_mapbox(
@@ -1028,7 +976,6 @@ def live_weather_map():
         map_html = fig.to_html(full_html=False)
         return render_template('live_weather_map.html', map_html=map_html, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S UTC'))
     else:
-        # Redirect back to the live_weather_map route
         return redirect('/live_weather_map')
 
 @app.route('/autocomplete_countries', methods=['GET'])
@@ -1039,7 +986,6 @@ def autocomplete_countries():
     # Filter country names that match the query
     suggestions = [country for country in countries if country.lower().startswith(query)]
 
-    # Return the suggestions as a JSON response
     return jsonify(suggestions)
 
 @app.route('/country_weather', methods=['GET', 'POST'])
@@ -1068,7 +1014,6 @@ def country_weather():
             lat = row['latitude']
             lon = row['longitude']
 
-            # Check if data is already in the database
             existing_data = db1.execute(
                 "SELECT * FROM weather_map_data WHERE city = ? AND utc_time = ?",
                 city, current_utc_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -1142,7 +1087,6 @@ def country_weather():
                         if weather_symbol == "☀️":
                             weather_symbol = "🌙"
 
-                    # Convert UTC time to local time for the city
 
                     # Store the data in the database
                     db1.execute("""
@@ -1167,10 +1111,8 @@ def country_weather():
                         'weather_symbol': weather_symbol
                     })
 
-        # Convert to DataFrame
         map_df = pd.DataFrame(map_data)
 
-        # Generate the map
         import plotly.express as px
         fig = px.scatter_mapbox(
             map_df,
@@ -1186,7 +1128,7 @@ def country_weather():
                 'local_time': True,
                 'sunrise': True,
                 'sunset': True,
-                'weather_symbol': True  # Add weather symbol to hover data
+                'weather_symbol': True  
             },
             color='temperature',
             size='humidity',
@@ -1196,11 +1138,9 @@ def country_weather():
         fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': map_df['lat'].mean(), 'lon': map_df['lon'].mean()})
         fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
 
-        # Convert the map to HTML
         map_html = fig.to_html(full_html=False)
 
         return render_template('country_weather_map.html', map_html=map_html, country=country, last_updated=current_utc_time.strftime('%Y-%m-%d %H:%M:%S'))
-    # Render the input form
     return render_template('country_weather.html')
 
 
@@ -1219,8 +1159,7 @@ def live_weather():
         if lat is None or lon is None:
             return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
 
-        # Load the world_cities_lat_long file
-        world_cities = pd.read_csv('data/world_cities_lat_long.csv')  # Ensure the file is in the correct path
+        world_cities = pd.read_csv('data/world_cities_lat_long.csv') 
 
         # Find nearby cities within a 500 km radius
         nearby_cities = []
@@ -1250,7 +1189,7 @@ def live_weather():
             color='type',
             title=f"Requested City and Nearby Cities (500 km radius)",
             color_discrete_map={'Requested City': 'red', 'Nearby City': 'blue'},
-            size=[10 if t == 'Requested City' else 5 for t in map_df['type']],  # Larger size for the requested city
+            size=[10 if t == 'Requested City' else 5 for t in map_df['type']], 
         )
         fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': lat, 'lon': lon})
         fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
@@ -1262,7 +1201,6 @@ def live_weather():
         start_time = end_time - timedelta(hours=hours)
         print(f"start time is {start_time}")
         print(f"end time is {end_time}")
-        # Fetch hourly weather data from the API
         print(f"Fetching data for {city} from the API...")
         api_df = get_historical_hourly_weather(api_key_weather, lat, lon, end_time, start_time, hours)
         print(api_df)
@@ -1272,7 +1210,6 @@ def live_weather():
         print(api_df)
         print("Nearby cities")
         print(map_data)
-        # Render a Plotly table with the data
         import plotly.graph_objects as go
         fig = go.Figure(data=[go.Table(
             header=dict(
@@ -1371,7 +1308,6 @@ def live_weather():
             humidity_plot_html=humidity_plot_html
         )
 
-    # Render the input form
     return render_template('live_weather.html')
 
 import plotly.figure_factory as ff
@@ -1379,7 +1315,6 @@ import plotly.express as px
 
 @app.route('/global_weather_analysis', methods=['GET'])
 def global_weather_analysis():
-    # Load the dataset
     df_all = pd.read_csv('data/combined_weather_data.csv')
 
     # Map numeric months to month names
@@ -1415,7 +1350,7 @@ def global_weather_analysis():
 
     # 3. Monthly wind speed by continent
     monthly_wind = df_all.groupby(['Continent', 'Month'])['Max Wind Speed (m/s)'].mean().reset_index()
-    monthly_wind['Month'] = monthly_wind['Month'].map(month_mapping)  # Map numeric months to names
+    monthly_wind['Month'] = monthly_wind['Month'].map(month_mapping)  
     fig7 = px.line(
         monthly_wind,
         x='Month',
@@ -1428,7 +1363,7 @@ def global_weather_analysis():
 
     # Plot 1: Monthly avg temperature by continent
     monthly_temp = df_all.groupby(['Continent', 'Month'])[['Max Temperature (°C)', 'Min Temperature (°C)']].mean().reset_index()
-    monthly_temp['Month'] = monthly_temp['Month'].map(month_mapping)  # Map numeric months to names
+    monthly_temp['Month'] = monthly_temp['Month'].map(month_mapping)  
     fig1 = px.line(
         monthly_temp,
         x="Month",
@@ -1456,7 +1391,7 @@ def global_weather_analysis():
     fig3.update_layout(title="Correlation Heatmap")
     fig3_html = fig3.to_html(full_html=False)
 
-        # Find hottest cities per continent per month
+    # Find hottest cities per continent per month
     monthly_city_temp = df_all.groupby(['Continent', 'Month', 'City'])['Max Temperature (°C)'].mean().reset_index()
 
     # Map numeric months to month names
