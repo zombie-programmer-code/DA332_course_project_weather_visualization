@@ -500,7 +500,6 @@ from datetime import datetime
 @app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
     if request.method == 'POST':
-        # Get form data
         line_cities = request.form.getlist('line_cities')
         line_from_year = int(request.form['line_from_year'])
         line_to_year = int(request.form['line_to_year'])
@@ -524,7 +523,6 @@ def historical_trends():
         line_rows = db.execute(line_query, *line_cities, str(line_from_year), str(line_to_year))
         line_df = pd.DataFrame(line_rows)
 
-        # Query for box plot data
         box_query = f"""
             SELECT city, date, {box_variable}
             FROM weather_data
@@ -537,14 +535,12 @@ def historical_trends():
         if line_df.empty and box_df.empty:
             return render_template('historical_trends.html', city_names=city_names, error="No data found for the selected cities and year range.")
 
-        # Convert date strings to datetime objects
         if not line_df.empty and 'date' in line_df.columns:
             line_df['date'] = pd.to_datetime(line_df['date'])
         
         if not box_df.empty and 'date' in box_df.columns:
             box_df['date'] = pd.to_datetime(box_df['date'])
 
-        # Create enhanced line plot
         line_fig = px.line(
             line_df,
             x='date',
@@ -568,7 +564,6 @@ def historical_trends():
             )
         )
 
-        # Improve layout and formatting
         line_fig.update_layout(
             legend_title_text='City',
             hovermode='x unified',
@@ -576,7 +571,6 @@ def historical_trends():
             template='plotly_white'
         )
 
-        # Create enhanced box plot
         box_fig = px.box(
             box_df,
             x='city',
@@ -586,7 +580,6 @@ def historical_trends():
             title=f"Distribution of {box_variable} in {', '.join(box_cities)}"
         )
 
-        # Add mean line across all cities for comparison
         if not box_df.empty:
             overall_mean = box_df[box_variable].mean()
             box_fig.add_shape(
@@ -605,7 +598,6 @@ def historical_trends():
                 yshift=10
             )
 
-        # Improve box plot layout
         box_fig.update_layout(
             showlegend=False,
             height=500,
@@ -671,7 +663,6 @@ def historical_trends():
             min_temp_df['month'] = min_temp_df['date'].dt.month
             min_temp_df['year'] = min_temp_df['date'].dt.year
             
-            # Monthly average min temperatures
             monthly_min = min_temp_df.groupby(['city', 'year', 'month'])['min_temperature'].mean().reset_index()
             
             min_fig = px.line(
@@ -714,7 +705,6 @@ def historical_trends():
             rain_df['month'] = rain_df['date'].dt.month
             rain_df['year'] = rain_df['date'].dt.year
             
-            # Monthly total rainfall
             monthly_rain = rain_df.groupby(['city', 'year', 'month'])['total_rainfall'].sum().reset_index()
             
             rain_fig = px.bar(
@@ -734,14 +724,12 @@ def historical_trends():
                 legend_title_text='City'
             )
             
-            # Add month names instead of numbers
             month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
             rain_fig.update_xaxes(tickvals=list(range(1, 13)), ticktext=month_names)
         else:
             rain_fig = go.Figure()
             rain_fig.update_layout(title="No rainfall data available")
 
-        # Convert plots to HTML
         line_plot_html = line_fig.to_html(full_html=False)
         box_plot_html = box_fig.to_html(full_html=False)
         max_plot_html = max_fig.to_html(full_html=False)
@@ -768,7 +756,6 @@ def view_pre_generated_statistics():
     region_month_stats = pd.read_csv('data/region_month_stats.csv')
     print("work in progress")
     
-    # Map numeric months to month names
     month_mapping = {
         1: "January", 2: "February", 3: "March", 4: "April",
         5: "May", 6: "June", 7: "July", 8: "August",
@@ -878,7 +865,7 @@ def forecasts():
         )])
 
         table_html = table_fig.to_html(full_html=False)
-        # Plot 1: Temperature Trends
+        # Temperature Trends
         temp_fig = px.line(
             pred_df,
             x='Prediction Date',
@@ -888,7 +875,7 @@ def forecasts():
         )
         temp_plot_html = temp_fig.to_html(full_html=False)
 
-        # Plot 2: Rainfall Trends
+        # Rainfall Trends
         rainfall_fig = px.bar(
             pred_df,
             x='Prediction Date',
@@ -898,7 +885,7 @@ def forecasts():
         )
         rainfall_plot_html = rainfall_fig.to_html(full_html=False)
 
-        # Plot 3: Wind Speed Trends
+        # Wind Speed Trends
         wind_fig = px.line(
             pred_df,
             x='Prediction Date',
@@ -911,7 +898,7 @@ def forecasts():
         # Find nearby cities within a 500 km radius
         world_cities = pd.read_csv('data/world_cities_lat_long.csv') 
         nearby_cities = []
-        map_data = [{'city': city, 'lat': lat, 'lon': lon, 'type': 'Requested City', 'distance': 0}]  # Add the requested city
+        map_data = [{'city': city, 'lat': lat, 'lon': lon, 'type': 'Requested City', 'distance': 0}] 
         for _, row in world_cities.iterrows():
             other_city = row['city']
             other_country = row['country']
@@ -1022,7 +1009,6 @@ def live_weather_map():
     flag = 0
     selected_cities = pd.read_csv('data/world_cities_map.csv')
 
-    # Prepare data for the map
     map_data = []
     current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
@@ -1217,7 +1203,6 @@ def country_weather():
                 # Fetch sunrise and sunset times
                 sunrise = existing_data[0]['sunrise']
                 sunset = existing_data[0]['sunset']
-                # Convert sunrise and sunset to datetime objects
                 sunrise = datetime.strptime(sunrise, '%Y-%m-%d %H:%M:%S')
                 sunset = datetime.strptime(sunset, '%Y-%m-%d %H:%M:%S')
 
@@ -1279,7 +1264,6 @@ def country_weather():
                             weather_symbol = "🌙"
 
 
-                    # Store the data in the database
                     db1.execute("""
                         INSERT INTO weather_map_data (
                             city, latitude, longitude, temperature, humidity, precipitation, utc_time, cloud_cover, feels_like, sunrise, sunset
@@ -1345,7 +1329,6 @@ def live_weather():
         city = request.form['city'].strip()
         hours = int(request.form['hours'])
 
-        # Get latitude and longitude for the given city
         lat, lon = get_lat_lon(city)
         if lat is None or lon is None:
             return render_template('live_weather.html', error=f"Could not fetch coordinates for {city}.")
@@ -1364,7 +1347,7 @@ def live_weather():
             if(city != other_city):
                 distance = haversine(lat, lon, other_lat, other_lon)
                 print(f"Other city is {other_city} and distance is {distance}")
-                if distance <= 500:  # Restrict radius to 500 km
+                if distance <= 500: 
                     nearby_cities.append((other_city, other_country, round(distance, 2)))  # Add city, country, and distance
                     map_data.append({'city': other_city, 'lat': other_lat, 'lon': other_lon, 'type': 'Nearby City', 'distance': round(distance, 2)})
 
@@ -1385,7 +1368,6 @@ def live_weather():
         fig.update_layout(mapbox_style='carto-positron', mapbox_zoom=4, mapbox_center={'lat': lat, 'lon': lon})
         fig.update_layout(margin={'r': 0, 't': 0, 'l': 0, 'b': 0})
 
-        # Convert the map to HTML
         map_html = fig.to_html(full_html=False)
 
         end_time = datetime.now(pytz.utc).replace(minute=0, second=0, microsecond=0)
@@ -1410,8 +1392,8 @@ def live_weather():
                         "Humidity (%)", "Pressure (mb)"],
                 fill_color='paleturquoise',
                 align='left',
-                font=dict(size=16),  # Increase font size for the header
-                height=40  # Increase height for the header
+                font=dict(size=16), 
+                height=40 
             ),
             cells=dict(
                 values=[
@@ -1427,8 +1409,8 @@ def live_weather():
                 ],
                 fill_color='lavender',
                 align='left',
-                font=dict(size=14),  # Increase font size for the cells
-                height=30  # Increase height for the cells
+                font=dict(size=14),  
+                height=30 
             )
         )])
 
@@ -1514,7 +1496,7 @@ def live_weather():
             title=f"Temperature vs. Humidity for {city} (Last {hours} Hours)",
             color='Datetime'
         )
-        temp_humidity_fig.update_layout(showlegend=False)  # Exclude the legend
+        temp_humidity_fig.update_layout(showlegend=False)  
         temp_humidity_plot_html = temp_humidity_fig.to_html(full_html=False)
 
         # Precipitation vs. Cloud Cover Scatter Plot
@@ -1526,7 +1508,7 @@ def live_weather():
             title=f"Precipitation vs. Cloud Cover for {city} (Last {hours} Hours)",
             color='Datetime'
         )
-        precip_cloud_fig.update_layout(showlegend=False)  # Exclude the legend
+        precip_cloud_fig.update_layout(showlegend=False) 
         precip_cloud_plot_html = precip_cloud_fig.to_html(full_html=False)
 
         # Wind Speed vs. Wind Direction Polar Plot
@@ -1538,7 +1520,7 @@ def live_weather():
             color='Datetime',
             title=f"Wind Speed vs. Wind Direction for {city} (Last {hours} Hours)"
         )
-        wind_polar_fig.update_layout(showlegend=False)  # Exclude the legend
+        wind_polar_fig.update_layout(showlegend=False)  
         wind_polar_plot_html = wind_polar_fig.to_html(full_html=False)
         return render_template(
         'live_weather_plot.html',
@@ -1575,7 +1557,7 @@ def global_weather_analysis():
         9: "September", 10: "October", 11: "November", 12: "December"
     }
 
-    # 1. Average temperature by continent
+    # Average temperature by continent
     continent_avg_temp = df_all.groupby('Continent')[['Max Temperature (°C)', 'Min Temperature (°C)']].mean().reset_index()
     fig5 = px.bar(
         continent_avg_temp,
@@ -1587,7 +1569,7 @@ def global_weather_analysis():
     )
     fig5_html = fig5.to_html(full_html=False)
 
-    # 2. Total rainfall by country
+    # Total rainfall by country
     country_total_rain = df_all.groupby('Country')['Total Rainfall (mm)'].sum().reset_index()
     fig6 = px.choropleth(
         country_total_rain,
@@ -1599,7 +1581,7 @@ def global_weather_analysis():
     )
     fig6_html = fig6.to_html(full_html=False)
 
-    # 3. Monthly wind speed by continent
+    # Monthly wind speed by continent
     monthly_wind = df_all.groupby(['Continent', 'Month'])['Max Wind Speed (m/s)'].mean().reset_index()
     monthly_wind['Month'] = monthly_wind['Month'].map(month_mapping)  
     fig7 = px.line(
@@ -1612,7 +1594,7 @@ def global_weather_analysis():
     )
     fig7_html = fig7.to_html(full_html=False)
 
-    # Plot 1: Monthly avg temperature by continent
+    # Monthly avg temperature by continent
     monthly_temp = df_all.groupby(['Continent', 'Month'])[['Max Temperature (°C)', 'Min Temperature (°C)']].mean().reset_index()
     monthly_temp['Month'] = monthly_temp['Month'].map(month_mapping)  
     fig1 = px.line(
@@ -1624,11 +1606,11 @@ def global_weather_analysis():
     )
     fig1_html = fig1.to_html(full_html=False)
 
-    # Plot 2: Rainfall box plot by country
+    # Rainfall box plot by country
     fig2 = px.box(df_all, x="Country", y="Total Rainfall (mm)", title="Rainfall Distribution by Country")
     fig2_html = fig2.to_html(full_html=False)
 
-    # Plot 3: Correlation heatmap
+    # Correlation heatmap
     numerics = ['Max Temperature (°C)', 'Min Temperature (°C)', 'Total Rainfall (mm)', 'Max Wind Speed (m/s)']
     corr = df_all[numerics].corr()
     corr = corr.round(2)
