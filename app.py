@@ -492,13 +492,15 @@ def check_status():
     page = request.args.get('page', '')
     is_ready = session.get(f'{page}_ready', True)
     return jsonify({'ready': is_ready})
+
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime
     
 @app.route('/historical_trends', methods=['GET', 'POST'])
 def historical_trends():
-     
-    
     if request.method == 'POST':
-        
+        # Get form data
         line_cities = request.form.getlist('line_cities')
         line_from_year = int(request.form['line_from_year'])
         line_to_year = int(request.form['line_to_year'])
@@ -507,10 +509,12 @@ def historical_trends():
         box_cities = request.form.getlist('box_cities')
         box_variable = request.form['box_variable']
 
+        # Handle temperature variables
         if "temperature" in line_variables:
             line_variables.remove("temperature")
             line_variables.extend(["max_temperature", "min_temperature"])
 
+        # Query for line plot data
         line_query = f"""
             SELECT city, date, {', '.join(line_variables)}
             FROM weather_data
@@ -520,6 +524,7 @@ def historical_trends():
         line_rows = db.execute(line_query, *line_cities, str(line_from_year), str(line_to_year))
         line_df = pd.DataFrame(line_rows)
 
+        # Query for box plot data
         box_query = f"""
             SELECT city, date, {box_variable}
             FROM weather_data
@@ -528,37 +533,232 @@ def historical_trends():
         box_rows = db.execute(box_query, *box_cities)
         box_df = pd.DataFrame(box_rows)
 
+        # Check if data was found
         if line_df.empty and box_df.empty:
             return render_template('historical_trends.html', city_names=city_names, error="No data found for the selected cities and year range.")
 
+        # Convert date strings to datetime objects
+        if not line_df.empty and 'date' in line_df.columns:
+            line_df['date'] = pd.to_datetime(line_df['date'])
+        
+        if not box_df.empty and 'date' in box_df.columns:
+            box_df['date'] = pd.to_datetime(box_df['date'])
+
+        # Create enhanced line plot
         line_fig = px.line(
             line_df,
             x='date',
             y=line_variables,
             color='city',
             labels={'value': 'Weather Metrics', 'variable': 'Metric'},
-            title=f"Weather Trends (Line Plot) for {', '.join(line_cities)} ({line_from_year} - {line_to_year})"
+            title=f"Weather Trends for {', '.join(line_cities)} ({line_from_year} - {line_to_year})"
         )
 
+        # Add range slider and date selectors
+        line_fig.update_xaxes(
+            rangeslider_visible=True,
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1M", step="month", stepmode="backward"),
+                    dict(count=6, label="6M", step="month", stepmode="backward"),
+                    dict(count=1, label="YTD", step="year", stepmode="todate"),
+                    dict(count=1, label="1Y", step="year", stepmode="backward"),
+                    dict(step="all")
+                ])
+            )
+        )
+
+        # Improve layout and formatting
+        line_fig.update_layout(
+            legend_title_text='City',
+            hovermode='x unified',
+            height=600,
+            template='plotly_white'
+        )
+
+        # Create enhanced box plot
         box_fig = px.box(
             box_df,
             x='city',
             y=box_variable,
             color='city',
             labels={'value': 'Weather Metrics', 'variable': 'Metric'},
-            title=f"Box Plot for {box_variable} in {', '.join(box_cities)}"
+            title=f"Distribution of {box_variable} in {', '.join(box_cities)}"
         )
 
+        # Add mean line across all cities for comparison
+        if not box_df.empty:
+            overall_mean = box_df[box_variable].mean()
+            box_fig.add_shape(
+                type="line",
+                x0=-0.5,
+                y0=overall_mean,
+                x1=len(box_cities)-0.5,
+                y1=overall_mean,
+                line=dict(color="firebrick", width=2, dash="dash"),
+            )
+            box_fig.add_annotation(
+                x=len(box_cities)-0.5,
+                y=overall_mean,
+                text=f"Overall Mean: {overall_mean:.2f}",
+                showarrow=False,
+                yshift=10
+            )
+
+        # Improve box plot layout
+        box_fig.update_layout(
+            showlegend=False,
+            height=500,
+            template='plotly_white'
+        )
+
+        # Create regional maximum temperature plot
+        max_temp_query = """
+            SELECT city, date, max_temperature
+            FROM weather_data
+            WHERE city IN ({}) AND max_temperature IS NOT NULL
+            AND strftime('%Y', date) BETWEEN ? AND ?
+        """.format(', '.join(['?'] * len(line_cities)))
+        
+        max_temp_rows = db.execute(max_temp_query, *line_cities, str(line_from_year), str(line_to_year))
+        max_temp_df = pd.DataFrame(max_temp_rows)
+        
+        if not max_temp_df.empty:
+            max_temp_df['date'] = pd.to_datetime(max_temp_df['date'])
+            max_temp_df['month'] = max_temp_df['date'].dt.month
+            max_temp_df['year'] = max_temp_df['date'].dt.year
+            
+            # Monthly average max temperatures
+            monthly_max = max_temp_df.groupby(['city', 'year', 'month'])['max_temperature'].mean().reset_index()
+            
+            max_fig = px.line(
+                monthly_max,
+                x='month',
+                y='max_temperature',
+                color='city',
+                facet_row='year',
+                labels={'max_temperature': 'Max Temperature (°C)', 'month': 'Month'},
+                title=f"Monthly Maximum Temperature Trends by Region ({line_from_year} - {line_to_year})",
+                line_shape='spline'
+            )
+            
+            max_fig.update_layout(
+                height=800,
+                template='plotly_white',
+                legend_title_text='City'
+            )
+            
+            # Add month names instead of numbers
+            month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            max_fig.update_xaxes(tickvals=list(range(1, 13)), ticktext=month_names)
+        else:
+            max_fig = go.Figure()
+            max_fig.update_layout(title="No maximum temperature data available")
+
+        # Create regional minimum temperature plot
+        min_temp_query = """
+            SELECT city, date, min_temperature
+            FROM weather_data
+            WHERE city IN ({}) AND min_temperature IS NOT NULL
+            AND strftime('%Y', date) BETWEEN ? AND ?
+        """.format(', '.join(['?'] * len(line_cities)))
+        
+        min_temp_rows = db.execute(min_temp_query, *line_cities, str(line_from_year), str(line_to_year))
+        min_temp_df = pd.DataFrame(min_temp_rows)
+        
+        if not min_temp_df.empty:
+            min_temp_df['date'] = pd.to_datetime(min_temp_df['date'])
+            min_temp_df['month'] = min_temp_df['date'].dt.month
+            min_temp_df['year'] = min_temp_df['date'].dt.year
+            
+            # Monthly average min temperatures
+            monthly_min = min_temp_df.groupby(['city', 'year', 'month'])['min_temperature'].mean().reset_index()
+            
+            min_fig = px.line(
+                monthly_min,
+                x='month',
+                y='min_temperature',
+                color='city',
+                facet_row='year',
+                labels={'min_temperature': 'Min Temperature (°C)', 'month': 'Month'},
+                title=f"Monthly Minimum Temperature Trends by Region ({line_from_year} - {line_to_year})",
+                line_shape='spline'
+            )
+            
+            min_fig.update_layout(
+                height=800,
+                template='plotly_white',
+                legend_title_text='City'
+            )
+            
+            # Add month names instead of numbers
+            month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            min_fig.update_xaxes(tickvals=list(range(1, 13)), ticktext=month_names)
+        else:
+            min_fig = go.Figure()
+            min_fig.update_layout(title="No minimum temperature data available")
+
+        # Create rainfall plot
+        rain_query = """
+            SELECT city, date, total_rainfall
+            FROM weather_data
+            WHERE city IN ({}) AND total_rainfall IS NOT NULL
+            AND strftime('%Y', date) BETWEEN ? AND ?
+        """.format(', '.join(['?'] * len(line_cities)))
+        
+        rain_rows = db.execute(rain_query, *line_cities, str(line_from_year), str(line_to_year))
+        rain_df = pd.DataFrame(rain_rows)
+        
+        if not rain_df.empty:
+            rain_df['date'] = pd.to_datetime(rain_df['date'])
+            rain_df['month'] = rain_df['date'].dt.month
+            rain_df['year'] = rain_df['date'].dt.year
+            
+            # Monthly total rainfall
+            monthly_rain = rain_df.groupby(['city', 'year', 'month'])['total_rainfall'].sum().reset_index()
+            
+            rain_fig = px.bar(
+                monthly_rain,
+                x='month',
+                y='total_rainfall',
+                color='city',
+                facet_row='year',
+                barmode='group',
+                labels={'total_rainfall': 'Total Rainfall (mm)', 'month': 'Month'},
+                title=f"Monthly Rainfall by Region ({line_from_year} - {line_to_year})"
+            )
+            
+            rain_fig.update_layout(
+                height=800,
+                template='plotly_white',
+                legend_title_text='City'
+            )
+            
+            # Add month names instead of numbers
+            month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            rain_fig.update_xaxes(tickvals=list(range(1, 13)), ticktext=month_names)
+        else:
+            rain_fig = go.Figure()
+            rain_fig.update_layout(title="No rainfall data available")
+
+        # Convert plots to HTML
         line_plot_html = line_fig.to_html(full_html=False)
         box_plot_html = box_fig.to_html(full_html=False)
+        max_plot_html = max_fig.to_html(full_html=False)
+        min_plot_html = min_fig.to_html(full_html=False)
+        rain_plot_html = rain_fig.to_html(full_html=False)
+
         return render_template(
             'historical_trends_plot.html',
             line_plot_html=line_plot_html,
-            box_plot_html=box_plot_html
+            box_plot_html=box_plot_html,
+            max_plot_html=max_plot_html,
+            min_plot_html=min_plot_html,
+            rain_plot_html=rain_plot_html
         )
-        
 
     return render_template('historical_trends.html', city_names=city_names)
+
 
 @app.route('/view_pre_generated_statistics', methods=['GET'])
 def view_pre_generated_statistics():

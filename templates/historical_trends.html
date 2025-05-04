@@ -9,13 +9,14 @@ Historical Weather Trends
     <!-- Header Section -->
     <div class="text-center p-4 mb-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
         <h1 class="mb-2" style="font-weight: bold;">View Historical Weather Trends</h1>
-        <p style="font-size: 1.2rem;">Select cities, year ranges, and variables separately for the line plot and box plot.</p>
+        <p style="font-size: 1.2rem;">Select cities, year ranges, and variables to generate comprehensive weather visualizations.</p>
     </div>
 
     <!-- Form Section -->
     <form action="/historical_trends" method="POST" style="background: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <!-- Line Plot Section -->
-        <h3 style="color: #34495e; font-weight: bold;">Line Plot</h3>
+        <h3 style="color: #34495e; font-weight: bold;">Line Plot & Monthly Trends</h3>
+        <p class="text-muted">Your selections here will generate an interactive line plot, monthly temperature trends, and rainfall distributions.</p>
         <div class="row mb-3">
             <div class="col-md-12">
                 <label for="line_cities" class="form-label" style="font-weight: bold; color: #34495e;">Select Cities for Line Plot</label>
@@ -45,6 +46,7 @@ Historical Weather Trends
                     <option value="{{ year }}">{{ year }}</option>
                     {% endfor %}
                 </select>
+                <small class="form-text text-muted">This year range will apply to all time-based visualizations.</small>
             </div>
         </div>
         <div class="row mb-3">
@@ -68,12 +70,13 @@ Historical Weather Trends
                         <label class="form-check-label" for="max_wind_speed">Max Wind Speed (m/s)</label>
                     </div>
                 </div>
-                <small class="form-text text-muted">Select one or more variables for the line plot.</small>
+                <small class="form-text text-muted">Select one or more variables for the line plot. Temperature selection will also generate detailed monthly temperature trend visualizations.</small>
             </div>
         </div>
 
         <!-- Box Plot Section -->
         <h3 style="color: #34495e; font-weight: bold;">Box Plot</h3>
+        <p class="text-muted">This will generate a statistical distribution visualization for the selected variable.</p>
         <div class="row mb-3">
             <div class="col-md-12">
                 <label for="box_cities" class="form-label" style="font-weight: bold; color: #34495e;">Select Cities for Box Plot</label>
@@ -103,9 +106,22 @@ Historical Weather Trends
             <button type="submit" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; transition: transform 0.3s;" 
                 onmouseover="this.style.transform='scale(1.05)'" 
                 onmouseout="this.style.transform='scale(1)'">
-                View Trends
+                Generate Visualizations
             </button>
         </div>
     </form>
+
+    <!-- Info Section -->
+    <div class="mt-4 p-3" style="background: #f0f7ff; border-radius: 10px; border-left: 5px solid #3498db;">
+        <h4 style="color: #2980b9;"><i class="fas fa-info-circle"></i> About the Visualizations</h4>
+        <p>Your selections will generate multiple interactive visualizations:</p>
+        <ul>
+            <li><strong>Interactive Line Plot</strong> with time range selectors</li>
+            <li><strong>Statistical Box Plot</strong> showing data distribution</li>
+            <li><strong>Monthly Maximum Temperature Trends</strong> by region and year</li>
+            <li><strong>Monthly Minimum Temperature Trends</strong> by region and year</li>
+            <li><strong>Monthly Rainfall Distribution</strong> by region and year</li>
+        </ul>
+    </div>
 </div>
 {% endblock %}

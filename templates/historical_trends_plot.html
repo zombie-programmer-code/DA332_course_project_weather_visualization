@@ -9,12 +9,13 @@ Historical Weather Trends
     <!-- Header Section -->
     <div class="text-center p-4 mb-4" style="background: linear-gradient(45deg, #3498db, #2980b9); border-radius: 10px; color: white;">
         <h1 class="mb-2" style="font-weight: bold;">Historical Weather Trends</h1>
-        <p style="font-size: 1.2rem;">Visualize historical weather data with line and box plots.</p>
+        <p style="font-size: 1.2rem;">Visualize historical weather data with interactive plots.</p>
     </div>
 
     <!-- Line Plot Section -->
     <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Line Plot</h2>
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Interactive Weather Trends</h2>
+        <p class="text-center text-muted">Use the range slider below the chart to zoom in on specific time periods. Click the buttons above the chart to select different time ranges.</p>
         <div style="overflow-x: auto;">
             {{ line_plot_html|safe }}
         </div>
@@ -22,39 +23,89 @@ Historical Weather Trends
 
     <!-- Box Plot Section -->
     <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Box Plot</h2>
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Statistical Distribution</h2>
+        <p class="text-center text-muted">Box plots show the median, quartiles, and outliers. The dashed red line represents the overall mean across all cities.</p>
         <div style="overflow-x: auto;">
             {{ box_plot_html|safe }}
         </div>
     </div>
+
     <!-- Max Temp Plot Section -->
     <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Maximum Temperatures by region</h2>
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Maximum Temperature Patterns</h2>
+        <p class="text-center text-muted">Monthly maximum temperature trends by region across different years.</p>
         <div style="overflow-x: auto;">
             {{ max_plot_html|safe }}
         </div>
     </div>
+
     <!-- Min Temp Plot Section -->
     <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Minimum Temperatures by region</h2>
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Minimum Temperature Patterns</h2>
+        <p class="text-center text-muted">Monthly minimum temperature trends by region across different years.</p>
         <div style="overflow-x: auto;">
             {{ min_plot_html|safe }}
         </div>
     </div>
+
     <!-- Rainfall Plot Section -->
     <div class="mb-4 p-3" style="background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Rainfall by region</h2>
+        <h2 class="text-center" style="color: #34495e; font-weight: bold;">Rainfall Distribution</h2>
+        <p class="text-center text-muted">Monthly rainfall totals by region across different years.</p>
         <div style="overflow-x: auto;">
             {{ rain_plot_html|safe }}
         </div>
     </div>
+
+    <!-- Insights Section -->
+    <div class="mb-4 p-4" style="background: linear-gradient(45deg, #27ae60, #2ecc71); border-radius: 10px; color: white;">
+        <h2 class="text-center mb-3" style="font-weight: bold;">Weather Insights</h2>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-center" style="color: #2980b9;">Temperature Patterns</h5>
+                        <p class="card-text text-dark">Compare seasonal temperature variations across different regions. Look for warming or cooling trends over the years.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-center" style="color: #2980b9;">Rainfall Analysis</h5>
+                        <p class="card-text text-dark">Identify monsoon patterns and drought periods. Compare rainfall distribution across different regions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-center" style="color: #2980b9;">Climate Variability</h5>
+                        <p class="card-text text-dark">Examine the statistical distribution of weather variables to understand climate stability and extreme weather events.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Back Button -->
-    <div class="text-center">
+    <div class="text-center mb-4">
         <a href="/historical_trends" class="btn" style="background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; text-decoration: none; transition: transform 0.3s;" 
            onmouseover="this.style.transform='scale(1.05)'" 
            onmouseout="this.style.transform='scale(1)'">
-            Back
+            <i class="fas fa-arrow-left mr-2"></i> Back to Selection
         </a>
     </div>
 </div>
+
+<!-- Add a script to handle responsive behavior -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make plots responsive
+        window.addEventListener('resize', function() {
+            // This triggers Plotly to resize the plots
+            window.dispatchEvent(new Event('resize'));
+        });
+    });
+</script>
 {% endblock %}
