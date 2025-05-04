@@ -1170,10 +1170,8 @@ def country_weather():
     if request.method == 'POST':
         country = request.form['country'].strip()
 
-        # Load the world_cities_lat_long.csv file
         world_cities = pd.read_csv('data/world_cities_lat_long.csv')
 
-        # Filter cities for the given country
         country_cities = world_cities[world_cities['country'].str.lower() == country.lower()]
 
         if country_cities.empty:
@@ -1182,7 +1180,6 @@ def country_weather():
         # Limit to a maximum of 10 cities
         country_cities = country_cities.head(10)
 
-        # Prepare data for the map
         map_data = []
         current_utc_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
@@ -1233,13 +1230,11 @@ def country_weather():
                     'weather_symbol': weather_symbol
                 })
             else:
-                # Fetch weather data from the API
                 weather_data = get_historical_hourly_weather(
                     api_key_weather, lat, lon, current_utc_time, current_utc_time - timedelta(hours=1), 1
                 )
 
                 if not weather_data.empty:
-                    # Extract the first row of weather data
                     weather_row = weather_data.iloc[0]
                     temperature = weather_row['Temperature (°C)']
                     feels_like = weather_row['Feels Like (°C)']
@@ -1340,7 +1335,6 @@ def get_bot_response():
         with open('llm_context_scraped.txt', 'r') as file:
             context = file.read()
 
-        # Build query
         query = f"""Based on this context about a weather visualization app:
         {context}
         
@@ -1357,7 +1351,6 @@ def get_bot_response():
         return jsonify({'response': response.text})
 
     except Exception as e:
-        # Fallback response if anything fails
         return jsonify({
             'response': "I'm having trouble processing your request right now. Please try asking about weather forecasts, historical data, or live weather conditions."
         })
@@ -1705,7 +1698,6 @@ def global_weather_analysis():
 
     fig4_html = fig4.to_html(full_html=False)
 
-    # Render the template with all plots
     return render_template(
         'global_weather_analysis.html',
         fig1_html=fig1_html,
