@@ -1339,6 +1339,45 @@ def country_weather():
 def about():
     return render_template('about.html')
 
+@app.route('/chatbot', methods=['GET'])
+def chatbot():
+    return render_template('chatbot.html')
+
+from google import genai
+@app.route('/get_bot_response', methods=['POST'])
+def get_bot_response():
+    user_message = request.json.get('message', '').lower()
+    
+    try:
+        # Initialize Gemini client
+        client = genai.Client(api_key="AIzaSyAl5I7bX0d8L7FQtZT9XrMJd1z5tmjplGg")
+        
+        # Read context file
+        with open('llm_context_scraped.txt', 'r') as file:
+            context = file.read()
+
+        # Build query
+        query = f"""Based on this context about a weather visualization app:
+        {context}
+        
+        User question: {user_message}
+        
+        Provide a helpful response guiding the user to the right feature. Dont return symbol like ** !! etc. Just a paragraph in chat."""
+
+        # Get response from Gemini
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=query
+        )
+
+        return jsonify({'response': response.text})
+
+    except Exception as e:
+        # Fallback response if anything fails
+        return jsonify({
+            'response': "I'm having trouble processing your request right now. Please try asking about weather forecasts, historical data, or live weather conditions."
+        })
+    
 @app.route('/live_weather', methods=['GET', 'POST'])
 def live_weather():
     if request.method == 'POST':
