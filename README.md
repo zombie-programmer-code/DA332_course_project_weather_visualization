@@ -1,4 +1,5 @@
 # Weather Vista
+Deployed mirror: [https://weather-vista.onrender.com](https://weather-vista.onrender.com)
 
 A Flask‑based web application delivering **real‑time**, **forecast**, and **historical** weather insights for hundreds of cities worldwide. It combines machine‑learning models, interactive Plotly/Mapbox maps, and a SQLite backend to provide rich visualizations and data‑driven forecasts.
 
@@ -108,10 +109,10 @@ DA332_course_project_weather_visualization/
 
 4. **Run the application**  
    ```bash
-   flask run
+   flask run or python app.py
    ```
 
 5. **Open in your browser**  
-   [http://127.0.0.1:5000](http://127.0.0.1:5000)
+   [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 
