@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Weather Assistant
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <!-- Chat Interface -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Weather Assistant</h2>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot">
+                Hello! I'm your weather assistant. How can I help you today?
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your question here...">
+            <button onclick="sendMessage()" id="send-button">Send</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.chat-header {
+    background: linear-gradient(45deg, #076e96, #a9c9b1);
+    color: white;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+}
+
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 80%;
+}
+
+.message.user {
+    background: #076e96;
+    color: white;
+    margin-left: auto;
+}
+
+.message.bot {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.chat-input {
+    display: flex;
+    padding: 20px;
+    background: #fff;
+    border-top: 1px solid #dee2e6;
+    border-radius: 0 0 10px 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.chat-input button {
+    background: #076e96;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.chat-input button:hover {
+    background: #065475;
+}
+</style>
+
+<script>
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    
+    if (message) {
+        // Add user message
+        addMessage('user', message);
+        
+        try {
+            // Send message to backend and get response
+            const response = await fetch('/get_bot_response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            
+            // Add bot response after a short delay
+            setTimeout(() => {
+                addMessage('bot', data.response);
+            }, 500);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('bot', 'Sorry, I encountered an error. Please try again.');
+        }
+        
+        input.value = '';
+    }
+}
+
+function addMessage(type, text) {
+    const messages = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = text;
+    messages.appendChild(messageDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+// Allow Enter key to send messages
+document.getElementById('user-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+</script>
+{% endblock %}

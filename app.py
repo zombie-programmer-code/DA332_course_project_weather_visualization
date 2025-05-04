@@ -1402,13 +1402,16 @@ def live_weather():
         print("Nearby cities")
         print(map_data)
         import plotly.graph_objects as go
+
         fig = go.Figure(data=[go.Table(
             header=dict(
                 values=["Datetime (Local)", "Temperature (°C)", "Feels Like (°C)", "Precipitation (mm)",
                         "Wind Speed (kph)", "Wind Direction", "Cloud Cover (%)",
                         "Humidity (%)", "Pressure (mb)"],
                 fill_color='paleturquoise',
-                align='left'
+                align='left',
+                font=dict(size=16),  # Increase font size for the header
+                height=40  # Increase height for the header
             ),
             cells=dict(
                 values=[
@@ -1423,7 +1426,9 @@ def live_weather():
                     api_df['Pressure (mb)']
                 ],
                 fill_color='lavender',
-                align='left'
+                align='left',
+                font=dict(size=14),  # Increase font size for the cells
+                height=30  # Increase height for the cells
             )
         )])
 
@@ -1484,20 +1489,75 @@ def live_weather():
             title=f"Humidity Trends for {city} (Last {hours} Hours)"
         )
         humidity_plot_html = humidity_fig.to_html(full_html=False)
-
-        return render_template(
-            'live_weather_plot.html',
-            city=city,
-            hours=hours,
-            nearby_cities=nearby_cities,
-            table_html=table_html,
-            map_html=map_html,
-            temperature_plot_html=temperature_plot_html,
-            precipitation_plot_html=precipitation_plot_html,
-            wind_rose_plot_html=wind_rose_plot_html,
-            cloud_cover_plot_html=cloud_cover_plot_html,
-            humidity_plot_html=humidity_plot_html
+        pressure_fig = px.line(
+            api_df,
+            x='Datetime',
+            y='Pressure (mb)',
+            labels={'Pressure (mb)': 'Pressure (mb)'},
+            title=f"Pressure Trends for {city} (Last {hours} Hours)"
         )
+        pressure_plot_html = pressure_fig.to_html(full_html=False)
+        # Wind Speed Line Plot
+        wind_speed_fig = px.line(
+            api_df,
+            x='Datetime',
+            y='Wind Speed (kph)',
+            labels={'Wind Speed (kph)': 'Wind Speed (kph)'},
+            title=f"Wind Speed Trends for {city} (Last {hours} Hours)"
+        )
+        wind_speed_plot_html = wind_speed_fig.to_html(full_html=False)
+        temp_humidity_fig = px.scatter(
+            api_df,
+            x='Temperature (°C)',
+            y='Humidity (%)',
+            labels={'Temperature (°C)': 'Temperature (°C)', 'Humidity (%)': 'Humidity (%)'},
+            title=f"Temperature vs. Humidity for {city} (Last {hours} Hours)",
+            color='Datetime'
+        )
+        temp_humidity_fig.update_layout(showlegend=False)  # Exclude the legend
+        temp_humidity_plot_html = temp_humidity_fig.to_html(full_html=False)
+
+        # Precipitation vs. Cloud Cover Scatter Plot
+        precip_cloud_fig = px.scatter(
+            api_df,
+            x='Cloud Cover (%)',
+            y='Precipitation (mm)',
+            labels={'Cloud Cover (%)': 'Cloud Cover (%)', 'Precipitation (mm)': 'Precipitation (mm)'},
+            title=f"Precipitation vs. Cloud Cover for {city} (Last {hours} Hours)",
+            color='Datetime'
+        )
+        precip_cloud_fig.update_layout(showlegend=False)  # Exclude the legend
+        precip_cloud_plot_html = precip_cloud_fig.to_html(full_html=False)
+
+        # Wind Speed vs. Wind Direction Polar Plot
+        wind_polar_fig = px.scatter_polar(
+            api_df,
+            r='Wind Speed (kph)',
+            theta='Wind Direction',
+            size='Wind Speed (kph)',
+            color='Datetime',
+            title=f"Wind Speed vs. Wind Direction for {city} (Last {hours} Hours)"
+        )
+        wind_polar_fig.update_layout(showlegend=False)  # Exclude the legend
+        wind_polar_plot_html = wind_polar_fig.to_html(full_html=False)
+        return render_template(
+        'live_weather_plot.html',
+        city=city,
+        hours=hours,
+        nearby_cities=nearby_cities,
+        table_html=table_html,
+        map_html=map_html,
+        temperature_plot_html=temperature_plot_html,
+        precipitation_plot_html=precipitation_plot_html,
+        wind_rose_plot_html=wind_rose_plot_html,
+        cloud_cover_plot_html=cloud_cover_plot_html,
+        humidity_plot_html=humidity_plot_html,
+        pressure_plot_html=pressure_plot_html,
+        wind_speed_plot_html=wind_speed_plot_html,
+        temp_humidity_plot_html=temp_humidity_plot_html,
+        precip_cloud_plot_html=precip_cloud_plot_html,
+        wind_polar_plot_html=wind_polar_plot_html
+    )
 
     return render_template('live_weather.html')
 

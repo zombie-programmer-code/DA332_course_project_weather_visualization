@@ -13,10 +13,11 @@ Live Weather Data
         <h5 class="text-light">Weather data for the past {{ hours }} hours</h5>
     </div>
 
-    <!-- Plot Section -->
+    <!-- Table Section -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         {{ table_html|safe }}
     </div>
+
     <!-- Temperature Plot -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <h4 class="mb-3" style="font-weight: bold;">Temperature Trends</h4>
@@ -46,14 +47,46 @@ Live Weather Data
         <h4 class="mb-3" style="font-weight: bold;">Humidity Trends</h4>
         {{ humidity_plot_html|safe }}
     </div>
-     <!-- Map Section -->
-     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h4 class="mb-3" style="font-weight: bold;">Cities(within 500 km) of {{ city }} </h4>
-        {{ map_html|safe }}
+
+    <!-- Pressure Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Pressure Trends</h4>
+        {{ pressure_plot_html|safe }}
     </div>
-    <!-- Nearby Cities Section -->
+
+    <!-- Wind Speed Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Wind Speed Trends</h4>
+        {{ wind_speed_plot_html|safe }}
+    </div>
+
+    <!-- Temperature vs. Humidity Scatter Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Temperature vs. Humidity</h4>
+        {{ temp_humidity_plot_html|safe }}
+    </div>
+
+    <!-- Precipitation vs. Cloud Cover Scatter Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Precipitation vs. Cloud Cover</h4>
+        {{ precip_cloud_plot_html|safe }}
+    </div>
+
+    <!-- Wind Speed vs. Wind Direction Polar Plot -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Wind Speed vs. Wind Direction</h4>
+        {{ wind_polar_plot_html|safe }}
+    </div>
+
+    <!-- Map Section -->
     <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <h4 class="mb-3" style="font-weight: bold;">Cities (within 500 km) of {{ city }}</h4>
+        {{ map_html|safe }}
+    </div>
+
+    <!-- Nearby Cities Section -->
+    <div class="mt-4 p-3" style="border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h4 class="mb-3" style="font-weight: bold;">Nearby Cities (within 500 km)</h4>
         {% if nearby_cities %}
             <ul style="list-style: none; padding: 0;">
                 {% for nearby_city, country, distance in nearby_cities %}

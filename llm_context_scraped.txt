@@ -1,0 +1,37 @@
+Weather Vista - Application Overview
+
+Weather Vista is a Flask web application that offers 8 core features through specific routes. Each feature serves different weather visualization needs:
+
+1. Historical Weather Analysis (Route: /historical_trends)
+This feature lets users compare historical weather metrics like temperature, rainfall, and wind patterns across Indian cities. Users can select multiple cities, specify year ranges, and choose metrics to view. It generates interactive line and box plots with statistical summaries. Common queries include viewing past weather patterns in Mumbai, comparing rainfall trends between cities, or analyzing temperature fluctuations over years.
+
+2. Weather Forecasting (Route: /forecast)
+Access 3-day weather predictions powered by deep learning models. Users can get forecasts for any city, view nearby city weather on an interactive map, and see detailed tabular predictions. Typical questions include predicting tomorrow's weather in Delhi, checking rain probability in Bangalore, or getting wind speed forecasts for Chennai.
+
+3. Real-Time Weather Dashboard (Route: /live_weather)
+Monitor current weather conditions and 24-hour trends for any city worldwide. The dashboard features 6 interactive charts and a nearby city map. Users often ask about current temperature in London, live humidity charts, or real-time wind patterns in New York.
+
+4. Global Weather Map (Route: /world_map)
+Explore worldwide city-level weather visualization covering 50+ cities with hover details, updated hourly. Perfect for users wanting a global temperature overview, live weather across continents, or world cloud cover patterns.
+
+5. Country-Specific Analysis (Route: /nation_map)
+View detailed weather visualization for specific countries. Users can explore weather maps of Brazil, see climate patterns across Japanese cities, or analyze Australian temperature distribution. Requires country name as input.
+
+6. Interactive Leaflet Map (Route: /leaflet_map)
+Access layered weather visualization with features like precipitation overlay, wind layer visualization, and click-to-search weather information.
+
+7. India Climate Analysis (Route: /india_analysis)
+Specialized tool for analyzing decadal regional trends across India. Compare monsoon patterns, analyze North vs South temperature averages, or study historical rainfall deviations.
+
+8. Global Climate Patterns (Route: /global_analysis)
+Compare weather patterns across continents. Find the hottest cities worldwide, study latitude-temperature correlations, or analyze continental rainfall distributions.
+
+Navigation Guide:
+The system identifies relevant features by analyzing location names, weather metrics, and action words in user queries. It prioritizes specific regional tools over general ones (like using India Analysis for Indian cities instead of global view).
+
+Example Usage:
+If someone asks "How did Delhi temperatures change from 2015-2020?" - Direct them to Historical Trends
+For "Show me a live map of European weather" - Guide them to World Map
+When asking "Predict rainfall in Mumbai and nearby areas" - Point them to Weather Forecasting
+
+The chatbot's role is to understand user needs and guide them to the most appropriate feature while explaining its capabilities.
