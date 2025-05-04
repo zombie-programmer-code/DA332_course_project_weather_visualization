@@ -7,13 +7,14 @@ A Flask‑based web application delivering **real‑time**, **forecast**, and **
 
 ## Features
 - **Historical Trends**
-  - Line and box plots(time frame is taken as input) for any combination of selected variables like Maximum Temperature, Minimum Temperature, Precipitation Hours for 30+ cities across India.
+  - Explore multi-year weather trends and distributions across Indian cities using interactive line plots, box plots, and facet-based plots. Visualizations include city-wise temperature, rainfall, and wind patterns, along with monthly summaries across years.
 - **Weather Forecasts**  
   - Deep Learning‑powered predictions (max/min temp, rainfall in mm, maximum wind speed). Model used: Bidirectional LSTM with fully connected layers, with around 300000 parameters, trained for 30 epochs. 
   - Interactive tables, temperature, rainfall and wind speed predictions are displayed. Nearby cities are also highlighted on a map, with clickable links to get 3 day forecasts for any nearby city.
 - **Live Weather**  
-  - View live weather(upto last 24 hours) for any city in the world. 
-  - Interactive weather table, temperature line plot, precipitation bar plot, wind rose chart, cloud cover trend, humidity area plot are displayed for the requested city. A map showing all the nearby cities(within 500 km) is displayed, and there are clickable buttons to fetch the live weather for any of the nearby cities.
+  - Visualize the most recent hourly weather trends(upto 24 hours) for any city, including **temperature**, **humidity**, **wind speed**, and more.  
+  - Get a detailed breakdown through **interactive line plots**, **bar charts**, **polar plots**, and **scatter visualizations**.  
+Also view nearby cities(within 500 km) on an interactive **Mapbox map**, with dynamic markers and real-time weather symbols. There are clickable buttons to fetch the live weather for any of the nearby cities.
 - **Worldwide Live Weather Map**  
   - Produces a Scatter‑Mapbox of 50+ cities around the world with temperature, humidity, cloud cover, precipitation, local time, sunrise/sunset and weather emojis(clear, cloudy, rainy) visible on hovering over the city.
   - If latest data is already available in the database, it is rendered immediately else the API calls have to be made, which may take a few minutes. Weather data is updated every 1 hour.
