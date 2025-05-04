@@ -27,6 +27,9 @@ Also view nearby cities(within 500 km) on an interactive **Mapbox map**, with dy
 - **Global Weather Analysis**
   - Visualizes global weather patterns using interactive Plotly charts: temperature trends, rainfall distributions, wind speeds, and more._-
   - Data is grouped by continent, country, and month, with insights like hottest cities and variable correlations.
+- **Additional Feature: Chatbot**
+  - A chatbot capable of handling user queries and guiding him to the correct page according to his needs.
+  
 ## 📁 Project Structure
 
 ```
